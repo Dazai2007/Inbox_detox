@@ -5,13 +5,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 import time
-from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from fastapi.responses import JSONResponse
 
 from app.core.config import settings
+from app.core.limits import limiter
 from app.database.database import engine, get_db
 from app.models import models
 from app.api import auth, emails
@@ -37,7 +37,6 @@ async def _init_db_if_needed():
         models.Base.metadata.create_all(bind=engine)
 
 # Rate limiting
-limiter = Limiter(key_func=get_remote_address, default_limits=[f"{settings.rate_limit_per_minute}/minute"])
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
 

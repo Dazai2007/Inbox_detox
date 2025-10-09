@@ -1,5 +1,5 @@
 import time
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from typing import List
 from app.database.database import get_db
@@ -7,11 +7,16 @@ from app.api.auth import get_current_user
 from app.services.email_service import EmailAnalysisService
 from app.models.models import User, Email, EmailAnalytics
 from app.schemas.schemas import EmailCreate, EmailResponse, EmailAnalysis
+from slowapi.util import get_remote_address
+from app.core.limits import limiter, user_rate_limit_key
 
 router = APIRouter(prefix="/emails", tags=["emails"])
 
+# Per-user rate limit on analyze (e.g., 10/min per user); fallback to IP when unauthenticated
+@limiter.limit("10/minute", key_func=user_rate_limit_key)
 @router.post("/analyze", response_model=EmailResponse)
 async def analyze_email(
+    request: Request,
     email_data: EmailCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -124,8 +129,10 @@ async def delete_email(
     
     return {"message": "Email deleted successfully"}
 
+# Keep demo-analyze open but still rate limit by IP to avoid abuse
+@limiter.limit("5/minute")
 @router.post("/demo-analyze", response_model=EmailAnalysis)
-async def demo_analyze_email(email_data: EmailCreate):
+async def demo_analyze_email(request: Request, email_data: EmailCreate):
     """Demo endpoint for analyzing emails without authentication."""
     # Initialize the email analysis service
     analysis_service = EmailAnalysisService()
