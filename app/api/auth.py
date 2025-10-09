@@ -6,7 +6,7 @@ from app.database.database import get_db
 from app.services.auth_service import AuthService
 from app.schemas.schemas import UserCreate, UserResponse, Token, RefreshTokenRequest, LogoutRequest
 from app.core.config import settings
-from app.core.jwt_blacklist import blacklist_jti
+from app.core.jwt_blacklist import blacklist_jti, blacklist_jti_db
 from jose import jwt, JWTError
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
@@ -71,13 +71,14 @@ async def read_users_me(current_user = Depends(get_current_user)):
     return current_user
 
 @router.post("/logout")
-async def logout(body: LogoutRequest = None, token: str = Depends(oauth2_scheme)):
+async def logout(body: LogoutRequest = None, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     # Blacklist current access token jti and optional refresh token jti
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
         jti = payload.get("jti")
         if jti:
             blacklist_jti(jti)
+            blacklist_jti_db(db, jti)
     except JWTError:
         pass
     if body and body.refresh_token:
@@ -86,6 +87,7 @@ async def logout(body: LogoutRequest = None, token: str = Depends(oauth2_scheme)
             rjti = payload.get("jti")
             if rjti:
                 blacklist_jti(rjti)
+                blacklist_jti_db(db, rjti)
         except JWTError:
             pass
     return {"message": "Logged out"}
