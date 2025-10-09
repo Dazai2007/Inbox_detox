@@ -31,6 +31,23 @@
    - Open http://127.0.0.1:8000/docs
    - Use /api/auth/register → /api/auth/login → /emails/analyze
 
+## Migrations (Alembic)
+
+This project uses Alembic for database schema migrations (no Flask extensions required).
+
+Quick usage (PowerShell):
+
+- Set DB URL (Postgres example):
+   - `$env:DATABASE_URL = "postgresql+psycopg2://inbox:inbox@localhost:5432/inbox_detox"`
+- Autogenerate a migration:
+   - `python -m alembic revision --autogenerate -m "your message"`
+- Apply migrations:
+   - `python -m alembic upgrade head`
+- See current revision:
+   - `python -m alembic current`
+
+See `scripts/migrations_readme.md` for details. In dev with SQLite, tables can also be created at app startup, but production should rely on Alembic.
+
 # Inbox Detox - AI-Powered Email Management SaaS
 
 ## Overview

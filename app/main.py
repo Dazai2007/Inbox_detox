@@ -13,6 +13,8 @@ import uuid
 import traceback
 
 from app.core.config import settings
+import os
+import subprocess
 from app.core.limits import limiter
 from app.database.database import engine, get_db
 from app.models import models
@@ -37,6 +39,21 @@ async def _init_db_if_needed():
     # Only auto-create in SQLite/dev to avoid bypassing migrations in Postgres
     if _is_sqlite(settings.database_url):
         models.Base.metadata.create_all(bind=engine)
+
+    # Optional: auto-run Alembic migrations if explicitly enabled
+    if os.getenv("AUTO_MIGRATE_ON_STARTUP", "false").lower() in ("1", "true", "yes"): 
+        try:
+            # Use python -m alembic upgrade head so it works in venv
+            subprocess.check_call([
+                os.getenv("PYTHON_EXECUTABLE", "python"), "-m", "alembic", "upgrade", "head"
+            ])
+            print("[startup] Alembic migrations applied (upgrade head)")
+        except subprocess.CalledProcessError as e:
+            if settings.environment == "production":
+                # Fail fast in production if migrations cannot be applied
+                raise RuntimeError(f"Failed to apply Alembic migrations: {e}")
+            else:
+                print(f"[startup] Warning: failed to apply Alembic migrations: {e}")
 
 # Rate limiting
 app.state.limiter = limiter
