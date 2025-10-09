@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.models.models import User
 from app.schemas.schemas import TokenData
+import uuid
+from app.core.jwt_blacklist import is_blacklisted
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -25,7 +27,7 @@ class AuthService:
         expire = datetime.utcnow() + (
             expires_delta or timedelta(minutes=settings.access_token_expire_minutes)
         )
-        to_encode.update({"exp": expire, "type": "access"})
+        to_encode.update({"exp": expire, "type": "access", "jti": str(uuid.uuid4())})
         return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
 
     @staticmethod
@@ -35,7 +37,7 @@ class AuthService:
         expire = datetime.utcnow() + (
             expires_delta or timedelta(days=30)
         )
-        to_encode.update({"exp": expire, "type": "refresh"})
+        to_encode.update({"exp": expire, "type": "refresh", "jti": str(uuid.uuid4())})
         return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
     
     @staticmethod
@@ -44,9 +46,12 @@ class AuthService:
             payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
             email: str = payload.get("sub")
             ttype = payload.get("type")
+            jti = payload.get("jti")
+            if jti and is_blacklisted(jti):
+                return None
             if email is None or (expected_type and ttype != expected_type):
                 return None
-            return TokenData(email=email)
+            return TokenData(email=email, type=ttype, jti=jti)
         except JWTError:
             return None
     

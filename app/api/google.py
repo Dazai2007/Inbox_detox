@@ -8,7 +8,7 @@ import httpx
 
 from app.core.config import settings
 from app.database.database import get_db
-from app.services.auth_service import get_current_user
+# from app.api.auth import get_current_user  # Uncomment if we need auth-protected Google routes
 
 router = APIRouter(prefix="/google", tags=["google"])
 

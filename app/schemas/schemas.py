@@ -52,9 +52,14 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: Optional[str] = None
+    type: Optional[str] = None
+    jti: Optional[str] = None
 
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
+
+class LogoutRequest(BaseModel):
+    refresh_token: Optional[str] = None
 
 # Subscription Schemas
 class SubscriptionResponse(BaseModel):

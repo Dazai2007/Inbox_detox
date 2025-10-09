@@ -1,11 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import timedelta
 from app.database.database import get_db
 from app.services.auth_service import AuthService
-from app.schemas.schemas import UserCreate, UserResponse, Token, RefreshTokenRequest
+from app.schemas.schemas import UserCreate, UserResponse, Token, RefreshTokenRequest, LogoutRequest
 from app.core.config import settings
+from app.core.jwt_blacklist import blacklist_jti
+from jose import jwt, JWTError
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
@@ -69,8 +71,23 @@ async def read_users_me(current_user = Depends(get_current_user)):
     return current_user
 
 @router.post("/logout")
-async def logout():
-    # Stateless JWT: client should discard tokens; optional server-side blacklist can be implemented later
+async def logout(body: LogoutRequest = None, token: str = Depends(oauth2_scheme)):
+    # Blacklist current access token jti and optional refresh token jti
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        jti = payload.get("jti")
+        if jti:
+            blacklist_jti(jti)
+    except JWTError:
+        pass
+    if body and body.refresh_token:
+        try:
+            payload = jwt.decode(body.refresh_token, settings.secret_key, algorithms=[settings.algorithm])
+            rjti = payload.get("jti")
+            if rjti:
+                blacklist_jti(rjti)
+        except JWTError:
+            pass
     return {"message": "Logged out"}
 
 @router.post("/refresh-token", response_model=Token)

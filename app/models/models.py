@@ -35,6 +35,7 @@ class User(Base):
     hashed_password = Column(String(255), nullable=True)
     full_name = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True)
+    is_verified = Column(Boolean, default=False, nullable=False)
     subscription_tier = Column(Enum(SubscriptionTier), default=SubscriptionTier.FREE)
     # Requested schema fields
     subscription_status = Column(Enum(SubscriptionStatus), default=SubscriptionStatus.FREE, nullable=False)

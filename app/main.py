@@ -5,11 +5,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 import time
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.database.database import engine, get_db
 from app.models import models
 from app.api import auth, emails
+from app.api import verification
 from app.api import google as google_router
 
 # Create database tables
@@ -22,6 +28,15 @@ app = FastAPI(
     version="1.0.0",
     debug=settings.debug
 )
+
+# Rate limiting
+limiter = Limiter(key_func=get_remote_address, default_limits=[f"{settings.rate_limit_per_minute}/minute"])
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(status_code=429, content={"detail": "Rate limit exceeded"})
 
 # CORS middleware
 app.add_middleware(
@@ -39,7 +54,20 @@ templates = Jinja2Templates(directory="templates")
 # Include API routers
 app.include_router(auth.router)
 app.include_router(emails.router)
+app.include_router(verification.router)
 app.include_router(google_router.router)
+
+# Simple request logging middleware
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration = (time.time() - start) * 1000
+    path = request.url.path
+    method = request.method
+    client = request.client.host if request.client else "?"
+    print(f"{method} {path} from {client} -> {response.status_code} ({duration:.1f} ms)")
+    return response
 
 # Root endpoint
 @app.get("/", response_class=HTMLResponse)
