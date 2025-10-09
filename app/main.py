@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.database.database import engine, get_db
 from app.models import models
 from app.api import auth, emails
+from app.api import google as google_router
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -38,6 +39,7 @@ templates = Jinja2Templates(directory="templates")
 # Include API routers
 app.include_router(auth.router)
 app.include_router(emails.router)
+app.include_router(google_router.router)
 
 # Root endpoint
 @app.get("/", response_class=HTMLResponse)

@@ -6,9 +6,10 @@ let currentUser = null;
 const API_BASE = window.location.origin;
 
 // Show/hide functions
-function showDemo() {
-    document.getElementById('demo').style.display = 'block';
-    window.scrollTo({ top: document.getElementById('demo').offsetTop - 60, behavior: 'smooth' });
+// Demo kaldırıldı; örnek görseller için scroll
+function goExamples() {
+    const el = document.getElementById('examples');
+    if (el) window.scrollTo({ top: el.offsetTop - 60, behavior: 'smooth' });
 }
 
 function showLogin() {
@@ -116,14 +117,14 @@ function updateUIForLoggedInUser() {
     const navbarNav = document.querySelector('#navbarNav .navbar-nav');
     navbarNav.innerHTML = `
         <li class="nav-item">
-            <a class="nav-link" href="#features">Features</a>
+            <a class="nav-link" href="#examples">Örnekler</a>
         </li>
         <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                 ${currentUser.full_name || currentUser.email}
             </a>
             <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#" onclick="showDashboard()">Dashboard</a></li>
+                <li><a class="dropdown-item" href="#" onclick="showDashboard()">Panel</a></li>
                 <li><a class="dropdown-item" href="#" onclick="logout()">Logout</a></li>
             </ul>
         </li>
@@ -134,16 +135,22 @@ function updateUIForLoggedOutUser() {
     const navbarNav = document.querySelector('#navbarNav .navbar-nav');
     navbarNav.innerHTML = `
         <li class="nav-item">
-            <a class="nav-link" href="#features">Features</a>
+            <a class="nav-link" href="#examples">Örnekler</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="#pricing">Pricing</a>
+            <a class="nav-link" href="#about">Hakkımızda</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="#" onclick="showLogin()">Login</a>
+            <a class="nav-link" href="#contact">İletişim</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link btn btn-outline-light ms-2 px-3" href="#" onclick="showSignup()">Sign Up</a>
+            <a class="nav-link" href="#pricing">Fiyatlandırma</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showLogin()">Giriş</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link btn btn-outline-light ms-2 px-3" href="#" onclick="showSignup()">Kayıt Ol</a>
         </li>
     `;
 }
@@ -224,45 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Demo form submission
-    const demoForm = document.getElementById('demoForm');
-    if (demoForm) {
-        demoForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const subject = document.getElementById('emailSubject').value;
-            const content = document.getElementById('emailContent').value;
-
-            if (!content || content.trim().length === 0) {
-                alert('Please paste an email content.');
-                return;
-            }
-
-            try {
-                const res = await fetch('/emails/demo-analyze', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ subject, content })
-                });
-
-                if (!res.ok) {
-                    const err = await res.json().catch(() => ({}));
-                    throw new Error(err.detail || 'Analysis failed');
-                }
-
-                const data = await res.json();
-
-                // Show results
-                document.getElementById('analysisResult').style.display = 'block';
-                document.getElementById('emailSummary').innerText = data.summary || '-';
-                document.getElementById('emailCategory').innerText = data.category || '-';
-                document.getElementById('confidenceScore').innerText = data.confidence_score ?? '-';
-            } catch (error) {
-                console.error(error);
-                alert(error.message || 'Unexpected error');
-            }
-        });
-    }
+    // Demo kaldırıldı
 
     // Login form submission
     document.getElementById('loginForm').addEventListener('submit', async function(e) {

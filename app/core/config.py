@@ -27,6 +27,19 @@ class Settings(BaseSettings):
     
     # Rate Limiting
     rate_limit_per_minute: int = 10
+
+    # Google OAuth (Gmail)
+    google_client_id: Optional[str] = None
+    google_client_secret: Optional[str] = None
+    # Default redirect in dev; override in .env for prod
+    google_redirect_uri: str = "http://127.0.0.1:8000/google/oauth2/callback"
+    # Space-separated scopes string expected by Google
+    google_scopes: str = (
+        "https://www.googleapis.com/auth/gmail.readonly "
+        "https://www.googleapis.com/auth/userinfo.email "
+        "https://www.googleapis.com/auth/userinfo.profile "
+        "openid"
+    )
     
     class Config:
         env_file = ".env"
