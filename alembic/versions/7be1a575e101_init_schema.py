@@ -17,23 +17,48 @@ branch_labels = None
 depends_on = None
 
 def upgrade() -> None:
-    # Use batch_alter_table for SQLite compatibility when dropping/altering columns
-    with op.batch_alter_table('subscriptions', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('stripe_customer_id', sa.String(length=255), nullable=True))
-        batch_op.add_column(sa.Column('plan_type', sa.String(length=50), nullable=True))
-        batch_op.drop_column('tier')
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
 
-    # Adding columns is fine, but altering NULLability requires batch in SQLite
-    op.add_column('users', sa.Column('password_hash', sa.String(length=255), nullable=True))
-    op.add_column('users', sa.Column('is_verified', sa.Boolean(), nullable=False))
-    op.add_column('users', sa.Column('subscription_status', sa.Enum('FREE', 'PRO', 'BUSINESS', name='subscriptionstatus'), nullable=False))
-    op.add_column('users', sa.Column('gmail_connected', sa.Boolean(), nullable=False))
-    op.add_column('users', sa.Column('gmail_refresh_token', sa.String(length=1024), nullable=True))
+    # subscriptions table adjustments
+    if 'subscriptions' in inspector.get_table_names():
+        subs_cols = {c['name'] for c in inspector.get_columns('subscriptions')}
+        with op.batch_alter_table('subscriptions', schema=None) as batch_op:
+            if 'stripe_customer_id' not in subs_cols:
+                batch_op.add_column(sa.Column('stripe_customer_id', sa.String(length=255), nullable=True))
+            if 'plan_type' not in subs_cols:
+                batch_op.add_column(sa.Column('plan_type', sa.String(length=50), nullable=True))
+            if 'tier' in subs_cols:
+                batch_op.drop_column('tier')
 
-    with op.batch_alter_table('users', schema=None) as batch_op:
-        batch_op.alter_column('hashed_password',
-                              existing_type=sa.VARCHAR(length=255),
-                              nullable=True)
+    # users table adjustments
+    if 'users' in inspector.get_table_names():
+        user_cols = {c['name'] for c in inspector.get_columns('users')}
+        # Add columns if they don't exist
+        if 'password_hash' not in user_cols:
+            op.add_column('users', sa.Column('password_hash', sa.String(length=255), nullable=True))
+        if 'is_verified' not in user_cols:
+            op.add_column('users', sa.Column('is_verified', sa.Boolean(), nullable=False, server_default=sa.text('0')))
+            # Drop server_default after backfilling existing rows as needed
+            with op.batch_alter_table('users', schema=None) as batch_op:
+                batch_op.alter_column('is_verified', server_default=None)
+        if 'subscription_status' not in user_cols:
+            op.add_column('users', sa.Column('subscription_status', sa.Enum('FREE', 'PRO', 'BUSINESS', name='subscriptionstatus'), nullable=False, server_default='FREE'))
+            with op.batch_alter_table('users', schema=None) as batch_op:
+                batch_op.alter_column('subscription_status', server_default=None)
+        if 'gmail_connected' not in user_cols:
+            op.add_column('users', sa.Column('gmail_connected', sa.Boolean(), nullable=False, server_default=sa.text('0')))
+            with op.batch_alter_table('users', schema=None) as batch_op:
+                batch_op.alter_column('gmail_connected', server_default=None)
+        if 'gmail_refresh_token' not in user_cols:
+            op.add_column('users', sa.Column('gmail_refresh_token', sa.String(length=1024), nullable=True))
+
+        # Make hashed_password nullable if column exists and currently NOT NULL
+        if 'hashed_password' in user_cols:
+            with op.batch_alter_table('users', schema=None) as batch_op:
+                batch_op.alter_column('hashed_password',
+                                      existing_type=sa.VARCHAR(length=255),
+                                      nullable=True)
 
 
 def downgrade() -> None:

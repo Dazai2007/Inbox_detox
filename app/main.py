@@ -9,6 +9,8 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from fastapi.responses import JSONResponse
+import uuid
+import traceback
 
 from app.core.config import settings
 from app.core.limits import limiter
@@ -43,6 +45,20 @@ app.add_middleware(SlowAPIMiddleware)
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     return JSONResponse(status_code=429, content={"detail": "Rate limit exceeded"})
+
+# Global error handler for unhandled exceptions (500)
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    req_id = str(uuid.uuid4())
+    # Log stack trace server-side for debugging
+    print(f"[ERROR] {req_id} {request.method} {request.url} -> {exc}\n{traceback.format_exc()}")
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "Internal server error",
+            "request_id": req_id,
+        },
+    )
 
 # CORS middleware
 origins = settings.allowed_hosts if settings.environment == "production" else ["*"]

@@ -13,10 +13,14 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # Create Base class
 Base = declarative_base()
 
-# Dependency to get DB session
+# Dependency to get DB session with rollback on exception
 def get_db():
     db = SessionLocal()
     try:
         yield db
+    except Exception:
+        # Ensure any pending transaction is rolled back on error
+        db.rollback()
+        raise
     finally:
         db.close()

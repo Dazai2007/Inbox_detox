@@ -85,10 +85,14 @@ async def analyze_email(
         
         return email_record
         
+    except HTTPException:
+        # Propagate known HTTP errors
+        raise
     except Exception as e:
+        # DB rollback happens in dependency; return structured error
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to analyze email: {str(e)}"
+            detail="Failed to analyze email"
         )
 
 @router.get("/", response_model=List[EmailResponse])
@@ -165,8 +169,10 @@ async def demo_analyze_email(request: Request, email_data: EmailCreate):
         
         return analysis
         
-    except Exception as e:
+    except HTTPException:
+        raise
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to analyze email: {str(e)}"
+            detail="Failed to analyze email"
         )
