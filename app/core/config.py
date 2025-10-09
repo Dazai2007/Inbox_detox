@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     secret_key: str = "change-this-in-production"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
+    refresh_token_expire_days: int = 30
     
     # OpenAI (optional in dev; features will fallback if not set)
     openai_api_key: Optional[str] = None
@@ -59,6 +60,11 @@ class Settings(BaseSettings):
     smtp_password: Optional[str] = None
     smtp_use_tls: bool = True
     smtp_from: Optional[str] = None
+
+    # Cookie settings for refresh tokens
+    refresh_cookie_name: str = "rt"
+    cookie_domain: str | None = None
+    cookie_samesite: str = "lax"  # lax/strict/none
     
     class Config:
         env_file = ".env"

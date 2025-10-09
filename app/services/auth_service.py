@@ -36,7 +36,7 @@ class AuthService:
         # Default 30 days for refresh
         to_encode = data.copy()
         expire = datetime.utcnow() + (
-            expires_delta or timedelta(days=30)
+            expires_delta or timedelta(days=settings.refresh_token_expire_days)
         )
         to_encode.update({"exp": expire, "type": "refresh", "jti": str(uuid.uuid4())})
         return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)

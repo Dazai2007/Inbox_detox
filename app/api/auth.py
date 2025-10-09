@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response, Cookie
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import timedelta
@@ -21,6 +21,7 @@ from app.core.security import sanitize_text
 from app.models.models import PasswordResetToken, User
 from datetime import datetime, timedelta, timezone
 import uuid
+from app.core.cookies import set_refresh_cookie, clear_refresh_cookie
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
@@ -45,7 +46,7 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     return user
 
 @router.post("/login", response_model=Token)
-async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = AuthService.authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -63,6 +64,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     )
     
     refresh_token = AuthService.create_refresh_token(data={"sub": user.email})
+    # Also set httpOnly cookie for refresh token for browser clients
+    set_refresh_cookie(response, refresh_token, max_age_seconds=settings.refresh_token_expire_days * 24 * 3600)
     return {"access_token": access_token, "token_type": "bearer", "refresh_token": refresh_token}
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
@@ -87,7 +90,7 @@ async def read_users_me(current_user = Depends(get_current_user)):
     return current_user
 
 @router.post("/logout")
-async def logout(body: LogoutRequest = None, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+async def logout(response: Response, body: LogoutRequest = None, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     # Blacklist current access token jti and optional refresh token jti
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
@@ -106,11 +109,13 @@ async def logout(body: LogoutRequest = None, token: str = Depends(oauth2_scheme)
                 blacklist_jti_db(db, rjti)
         except JWTError:
             pass
+    clear_refresh_cookie(response)
     return {"message": "Logged out"}
 
 @router.post("/refresh-token", response_model=Token)
-async def refresh_token(body: RefreshTokenRequest):
-    data = AuthService.verify_token(body.refresh_token, expected_type="refresh")
+async def refresh_token(body: RefreshTokenRequest | None = None, rt: str | None = Cookie(default=None, alias=settings.refresh_cookie_name)):
+    raw_refresh = body.refresh_token if body else rt
+    data = AuthService.verify_token(raw_refresh or "", expected_type="refresh")
     if not data or not data.email:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
     access_token = AuthService.create_access_token(data={"sub": data.email})
