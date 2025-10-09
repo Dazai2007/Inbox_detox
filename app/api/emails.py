@@ -5,7 +5,7 @@ from typing import List
 from app.database.database import get_db
 from app.api.auth import get_current_user
 from app.services.email_service import EmailAnalysisService
-from app.models.models import User, Email
+from app.models.models import User, Email, EmailAnalytics
 from app.schemas.schemas import EmailCreate, EmailResponse, EmailAnalysis
 
 router = APIRouter(prefix="/emails", tags=["emails"])
@@ -41,8 +41,21 @@ async def analyze_email(
             confidence_score=analysis.confidence_score,
             processing_time_ms=processing_time
         )
-        
+
+        # Also persist analytics history with raw content
+        analytics_record = EmailAnalytics(
+            user_id=current_user.id,
+            sender=None,  # optional: populate if available in future
+            subject=email_data.subject,
+            email_content=email_data.content,
+            received_date=None,  # optional: set if available
+            priority=None,       # optional: set if available
+            category=analysis.category,
+            summary=analysis.summary,
+        )
+
         db.add(email_record)
+        db.add(analytics_record)
         db.commit()
         db.refresh(email_record)
         
