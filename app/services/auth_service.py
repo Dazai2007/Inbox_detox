@@ -22,21 +22,29 @@ class AuthService:
     @staticmethod
     def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         to_encode = data.copy()
-        if expires_delta:
-            expire = datetime.utcnow() + expires_delta
-        else:
-            expire = datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes)
-        
-        to_encode.update({"exp": expire})
-        encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
-        return encoded_jwt
+        expire = datetime.utcnow() + (
+            expires_delta or timedelta(minutes=settings.access_token_expire_minutes)
+        )
+        to_encode.update({"exp": expire, "type": "access"})
+        return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
+
+    @staticmethod
+    def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
+        # Default 30 days for refresh
+        to_encode = data.copy()
+        expire = datetime.utcnow() + (
+            expires_delta or timedelta(days=30)
+        )
+        to_encode.update({"exp": expire, "type": "refresh"})
+        return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
     
     @staticmethod
-    def verify_token(token: str) -> Optional[TokenData]:
+    def verify_token(token: str, expected_type: str = "access") -> Optional[TokenData]:
         try:
             payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
             email: str = payload.get("sub")
-            if email is None:
+            ttype = payload.get("type")
+            if email is None or (expected_type and ttype != expected_type):
                 return None
             return TokenData(email=email)
         except JWTError:

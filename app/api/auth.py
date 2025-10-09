@@ -4,11 +4,11 @@ from sqlalchemy.orm import Session
 from datetime import timedelta
 from app.database.database import get_db
 from app.services.auth_service import AuthService
-from app.schemas.schemas import UserCreate, UserResponse, Token
+from app.schemas.schemas import UserCreate, UserResponse, Token, RefreshTokenRequest
 from app.core.config import settings
 
-router = APIRouter(prefix="/auth", tags=["authentication"])
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+router = APIRouter(prefix="/api/auth", tags=["authentication"])
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 @router.post("/register", response_model=UserResponse)
 async def register(user_data: UserCreate, db: Session = Depends(get_db)):
@@ -44,7 +44,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         data={"sub": user.email}, expires_delta=access_token_expires
     )
     
-    return {"access_token": access_token, "token_type": "bearer"}
+    refresh_token = AuthService.create_refresh_token(data={"sub": user.email})
+    return {"access_token": access_token, "token_type": "bearer", "refresh_token": refresh_token}
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
@@ -53,7 +54,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         headers={"WWW-Authenticate": "Bearer"},
     )
     
-    token_data = AuthService.verify_token(token)
+    token_data = AuthService.verify_token(token, expected_type="access")
     if token_data is None:
         raise credentials_exception
     
@@ -66,3 +67,17 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
 @router.get("/me", response_model=UserResponse)
 async def read_users_me(current_user = Depends(get_current_user)):
     return current_user
+
+@router.post("/logout")
+async def logout():
+    # Stateless JWT: client should discard tokens; optional server-side blacklist can be implemented later
+    return {"message": "Logged out"}
+
+@router.post("/refresh-token", response_model=Token)
+async def refresh_token(body: RefreshTokenRequest):
+    data = AuthService.verify_token(body.refresh_token, expected_type="refresh")
+    if not data or not data.email:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+    access_token = AuthService.create_access_token(data={"sub": data.email})
+    # Optionally rotate refresh tokens here
+    return {"access_token": access_token, "token_type": "bearer"}
