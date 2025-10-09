@@ -84,6 +84,31 @@ class RefreshTokenRequest(BaseModel):
 class LogoutRequest(BaseModel):
     refresh_token: Optional[str] = None
 
+# Password reset schemas
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: Annotated[
+        str,
+        StringConstraints(
+            min_length=8,
+            max_length=128,
+        ),
+    ] = Field(..., description="8-128 chars, include upper, lower, digit, and special")
+
+    @field_validator("new_password")
+    @classmethod
+    def new_password_strength(cls, v: str) -> str:
+        has_lower = any(c.islower() for c in v)
+        has_upper = any(c.isupper() for c in v)
+        has_digit = any(c.isdigit() for c in v)
+        has_special = any(not c.isalnum() for c in v)
+        if not (has_lower and has_upper and has_digit and has_special):
+            raise ValueError("Password must include upper, lower, digit, and special character")
+        return v
+
 # Subscription Schemas
 class SubscriptionResponse(BaseModel):
     id: int

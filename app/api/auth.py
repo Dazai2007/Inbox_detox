@@ -4,10 +4,23 @@ from sqlalchemy.orm import Session
 from datetime import timedelta
 from app.database.database import get_db
 from app.services.auth_service import AuthService
-from app.schemas.schemas import UserCreate, UserResponse, Token, RefreshTokenRequest, LogoutRequest
+from app.schemas.schemas import (
+    UserCreate,
+    UserResponse,
+    Token,
+    RefreshTokenRequest,
+    LogoutRequest,
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
+)
 from app.core.config import settings
 from app.core.jwt_blacklist import blacklist_jti, blacklist_jti_db
 from jose import jwt, JWTError
+from app.services.email_sender import send_email
+from app.core.security import sanitize_text
+from app.models.models import PasswordResetToken, User
+from datetime import datetime, timedelta, timezone
+import uuid
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
@@ -103,3 +116,50 @@ async def refresh_token(body: RefreshTokenRequest):
     access_token = AuthService.create_access_token(data={"sub": data.email})
     # Optionally rotate refresh tokens here
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+# Password reset: request
+@router.post("/forgot-password")
+async def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    email = body.email
+    user = AuthService.get_user_by_email(db, email=email)
+    # Always return 200 to prevent user enumeration
+    if not user:
+        return {"message": "If an account exists, a reset email has been sent"}
+
+    token = str(uuid.uuid4())
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+    prt = PasswordResetToken(user_id=user.id, token=token, expires_at=expires_at)
+    db.add(prt)
+    db.commit()
+
+    reset_url = f"{settings.app_base_url}/api/auth/reset-password?token={token}"
+    subject = "Reset your Inbox Detox password"
+    body_text = (
+        f"Hi,\n\nYou requested to reset your password. Use the link below to set a new password:\n"
+        f"{reset_url}\n\nThis link will expire in 1 hour. If you didn't request a reset, you can ignore this message."
+    )
+    send_email(user.email, subject, body_text)
+    return {"message": "If an account exists, a reset email has been sent"}
+
+
+# Password reset: confirm
+@router.post("/reset-password")
+async def reset_password(body: ResetPasswordRequest, db: Session = Depends(get_db)):
+    token = body.token
+    prt = db.query(PasswordResetToken).filter(
+        PasswordResetToken.token == token,
+        PasswordResetToken.used == False,
+    ).first()  # noqa: E712
+    if not prt or prt.expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+    user: User | None = db.query(User).filter(User.id == prt.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Reuse password hashing policy
+    hashed = AuthService.get_password_hash(body.new_password)
+    user.password_hash = hashed
+    prt.used = True
+    db.commit()
+    return {"message": "Password has been reset"}
