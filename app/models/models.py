@@ -92,6 +92,7 @@ class EmailAnalytics(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     sender = Column(String(255), nullable=True)
     subject = Column(String(500), nullable=True)
+    email_content = Column(Text, nullable=True)
     received_date = Column(DateTime(timezone=True), nullable=True)
     priority = Column(String(50), nullable=True)
     category = Column(String(50), nullable=True)
