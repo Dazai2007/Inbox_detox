@@ -49,6 +49,8 @@ class User(Base):
     # Relationships
     emails = relationship("Email", back_populates="user")
     subscriptions = relationship("Subscription", back_populates="user")
+    email_analytics = relationship("EmailAnalytics", back_populates="user", cascade="all, delete-orphan")
+    verification_tokens = relationship("VerificationToken", back_populates="user", cascade="all, delete-orphan")
 
 class Email(Base):
     __tablename__ = "emails"
@@ -99,9 +101,7 @@ class EmailAnalytics(Base):
     summary = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    user = relationship("User")
-
-
+    user = relationship("User", back_populates="email_analytics")
 class BlacklistedToken(Base):
     __tablename__ = "blacklisted_tokens"
 
@@ -121,4 +121,6 @@ class VerificationToken(Base):
     used = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    user = relationship("User")
+    user = relationship("User", back_populates="verification_tokens")
+    user = relationship("User", back_populates="email_analytics")
+    user = relationship("User", back_populates="verification_tokens")
