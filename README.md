@@ -1,3 +1,36 @@
+# Inbox Detox
+## Postgres quickstart
+
+1) Start Postgres (Docker):
+
+   - Ensure Docker Desktop is installed, then from repo root:
+
+     - On Windows PowerShell:
+       - `docker compose up -d`
+
+2) Configure env:
+
+   - Copy `.env.example` → `.env` and set:
+     - `DATABASE_URL=postgresql+psycopg2://inbox:inbox@localhost:5432/inbox_detox`
+     - `SECRET_KEY=...`
+     - Optional limits:
+       - `RATE_LIMIT_PER_MINUTE=10`
+       - `FREE_MONTHLY_ANALYSIS_LIMIT=20`
+
+3) Install deps and run migrations:
+
+   - `pip install -r requirements.txt`
+   - `alembic upgrade head`
+
+4) Run the API:
+
+   - `uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload`
+
+5) Try it:
+
+   - Open http://127.0.0.1:8000/docs
+   - Use /api/auth/register → /api/auth/login → /emails/analyze
+
 # Inbox Detox - AI-Powered Email Management SaaS
 
 ## Overview
