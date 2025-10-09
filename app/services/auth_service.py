@@ -45,7 +45,13 @@ class AuthService:
     @staticmethod
     def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
         user = db.query(User).filter(User.email == email).first()
-        if not user or not AuthService.verify_password(password, user.hashed_password):
+        if not user:
+            return None
+        # Try new field first, fallback to legacy
+        stored_hash = user.password_hash or user.hashed_password
+        if not stored_hash:
+            return None
+        if not AuthService.verify_password(password, stored_hash):
             return None
         return user
     
@@ -54,7 +60,7 @@ class AuthService:
         hashed_password = AuthService.get_password_hash(password)
         user = User(
             email=email,
-            hashed_password=hashed_password,
+            password_hash=hashed_password,
             full_name=full_name
         )
         db.add(user)

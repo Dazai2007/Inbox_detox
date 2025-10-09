@@ -11,8 +11,8 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     
-    # OpenAI
-    openai_api_key: str
+    # OpenAI (optional in dev; features will fallback if not set)
+    openai_api_key: Optional[str] = None
     
     # Stripe
     stripe_secret_key: Optional[str] = None

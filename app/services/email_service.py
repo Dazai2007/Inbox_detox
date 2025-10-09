@@ -8,13 +8,20 @@ from app.schemas.schemas import EmailAnalysis
 
 class EmailAnalysisService:
     def __init__(self):
-        self.client = OpenAI(api_key=settings.openai_api_key)
+        self.client = None
+        if settings.openai_api_key:
+            try:
+                self.client = OpenAI(api_key=settings.openai_api_key)
+            except Exception:
+                self.client = None
     
     def analyze_email(self, content: str, subject: str = None) -> EmailAnalysis:
         """Analyze email content and return summary with category."""
         start_time = time.time()
         
         try:
+            if not self.client:
+                raise RuntimeError("OpenAI not configured")
             # Prepare the prompt
             email_text = f"Subject: {subject}\n\n{content}" if subject else content
             
