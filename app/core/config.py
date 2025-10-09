@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     
     # Rate Limiting
     rate_limit_per_minute: int = 10
+    # Quotas
+    free_monthly_analysis_limit: int = 20
 
     # Google OAuth (Gmail)
     google_client_id: Optional[str] = None
