@@ -19,27 +19,38 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto" id="navbarNavList">
                     <li class="nav-item">
-                        <a class="nav-link" href="#examples">Örnekler</a>
+                        <a class="nav-link" href="#examples"><span data-i18n="nav.examples">Examples</span></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#features">Özellikler</a>
+                        <a class="nav-link" href="#features"><span data-i18n="nav.features">Features</span></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#about">Hakkımızda</a>
+                        <a class="nav-link" href="#about"><span data-i18n="nav.about">About</span></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#contact">İletişim</a>
+                        <a class="nav-link" href="#contact"><span data-i18n="nav.contact">Contact</span></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#pricing">Fiyatlandırma</a>
+                        <a class="nav-link" href="#pricing"><span data-i18n="nav.pricing">Pricing</span></a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="showLogin()">Giriş</a>
+                    <li class="nav-item" id="navLoginLi">
+                        <a class="nav-link" href="#" onclick="showLogin()"><span data-i18n="nav.login">Login</span></a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link btn btn-outline-light ms-2 px-3" href="#" onclick="showSignup()">Kayıt Ol</a>
+                    <li class="nav-item" id="navSignupLi">
+                        <a class="nav-link btn btn-outline-light ms-2 px-3" href="#" onclick="showSignup()"><span data-i18n="nav.signup">Sign Up</span></a>
+                    </li>
+                    <li class="nav-item dropdown ms-2">
+                        <a class="nav-link dropdown-toggle" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-globe me-1"></i><span id="currentLangLabel">EN</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langDropdown">
+                            <li><a class="dropdown-item" href="#" data-lang="en">English</a></li>
+                            <li><a class="dropdown-item" href="#" data-lang="tr">Türkçe</a></li>
+                            <li><a class="dropdown-item" href="#" data-lang="fr">Français</a></li>
+                            <li><a class="dropdown-item" href="#" data-lang="de">Deutsch</a></li>
+                        </ul>
                     </li>
                 </ul>
             </div>
@@ -51,17 +62,16 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
-                    <h1 class="display-4 fw-bold mb-4">Declutter Your Inbox with AI</h1>
-                    <p class="lead mb-4">
-                        Let artificial intelligence summarize and categorize your emails instantly. 
-                        Transform email overload into organized, actionable insights.
+                    <h1 class="display-4 fw-bold mb-4" data-i18n="hero.title">Declutter Your Inbox with AI</h1>
+                    <p class="lead mb-4" data-i18n="hero.subtitle">
+                        Let artificial intelligence summarize and categorize your emails instantly. Transform email overload into organized, actionable insights.
                     </p>
                     <div class="d-flex gap-3">
-                        <a class="btn btn-light btn-lg" href="#examples">
-                            <i class="fas fa-images me-2"></i>Örnekleri Gör
+                        <a class="btn btn-light btn-lg" href="#examples" id="examplesBtn">
+                            <i class="fas fa-images me-2"></i><span data-i18n="hero.examples_btn">See Examples</span>
                         </a>
-                        <button class="btn btn-outline-light btn-lg" onclick="showSignup()">
-                            Ücretsiz Başla
+                        <button class="btn btn-outline-light btn-lg" onclick="showSignup()" id="ctaBtn">
+                            <span data-i18n="hero.cta_btn">Get Started Free</span>
                         </button>
                     </div>
                 </div>
@@ -78,16 +88,16 @@
     <section id="examples" class="py-5 bg-light">
         <div class="container">
             <div class="text-center mb-5">
-                <h2 class="display-6 fw-bold">Örnek Görseller</h2>
-                <p class="lead text-muted">AI ile özetlenmiş ve önemliye göre sıralanmış e-postalara örnekler</p>
+                <h2 class="display-6 fw-bold" data-i18n="examples.title">Example Screens</h2>
+                <p class="lead text-muted" data-i18n="examples.subtitle">Sample AI summaries and priority-ranked emails</p>
             </div>
             <div class="row g-4">
                 <div class="col-md-4">
                     <div class="card h-100 shadow-sm">
                         <img src="https://placehold.co/600x350?text=Gmail+Ozet" class="card-img-top" alt="Özet Görseli">
                         <div class="card-body">
-                            <h5 class="card-title">Gmail Özet Paneli</h5>
-                            <p class="card-text text-muted">Uzun e-postalar saniyeler içinde kısa ve net özetlere dönüşür.</p>
+                            <h5 class="card-title" data-i18n="examples.card1.title">Gmail Summary Panel</h5>
+                            <p class="card-text text-muted" data-i18n="examples.card1.text">Long emails become short, clear summaries in seconds.</p>
                         </div>
                     </div>
                 </div>
@@ -95,8 +105,8 @@
                     <div class="card h-100 shadow-sm">
                         <img src="https://placehold.co/600x350?text=Onem+Skoru" class="card-img-top" alt="Önem Skoru">
                         <div class="card-body">
-                            <h5 class="card-title">Önem Skoru</h5>
-                            <p class="card-text text-muted">Mesajlar aciliyet ve önem derecesine göre sıralanır.</p>
+                            <h5 class="card-title" data-i18n="examples.card2.title">Priority Score</h5>
+                            <p class="card-text text-muted" data-i18n="examples.card2.text">Messages are ranked by urgency and importance.</p>
                         </div>
                     </div>
                 </div>
@@ -104,8 +114,8 @@
                     <div class="card h-100 shadow-sm">
                         <img src="https://placehold.co/600x350?text=Analitik+Grafikler" class="card-img-top" alt="Analitik Grafikleri">
                         <div class="card-body">
-                            <h5 class="card-title">Analitik & Grafikler</h5>
-                            <p class="card-text text-muted">Günlük e-posta adetleri, gönderen dağılımı ve trendler tek yerde.</p>
+                            <h5 class="card-title" data-i18n="examples.card3.title">Analytics & Charts</h5>
+                            <p class="card-text text-muted" data-i18n="examples.card3.text">Daily volumes, sender breakdowns, and trends.</p>
                         </div>
                     </div>
                 </div>
@@ -117,8 +127,8 @@
     <section id="features" class="py-5">
         <div class="container">
             <div class="text-center mb-5">
-                <h2 class="display-5 fw-bold">Powerful Features</h2>
-                <p class="lead text-muted">Everything you need to manage your inbox efficiently</p>
+                <h2 class="display-5 fw-bold" data-i18n="features.title">Powerful Features</h2>
+                <p class="lead text-muted" data-i18n="features.subtitle">Everything you need to manage your inbox efficiently</p>
             </div>
             <div class="row g-4">
                 <div class="col-md-4">
@@ -127,8 +137,8 @@
                             <div class="feature-icon bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3">
                                 <i class="fas fa-compress-alt"></i>
                             </div>
-                            <h5>Smart Summarization</h5>
-                            <p class="text-muted">Get concise summaries of lengthy emails in seconds using advanced AI.</p>
+                            <h5 data-i18n="features.card1.title">Smart Summarization</h5>
+                            <p class="text-muted" data-i18n="features.card1.text">Get concise summaries of lengthy emails in seconds using advanced AI.</p>
                         </div>
                     </div>
                 </div>
@@ -138,8 +148,8 @@
                             <div class="feature-icon bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3">
                                 <i class="fas fa-tags"></i>
                             </div>
-                            <h5>Auto Categorization</h5>
-                            <p class="text-muted">Automatically sort emails into categories: important, meetings, invoices, and more.</p>
+                            <h5 data-i18n="features.card2.title">Auto Categorization</h5>
+                            <p class="text-muted" data-i18n="features.card2.text">Automatically sort emails into categories: important, meetings, invoices, and more.</p>
                         </div>
                     </div>
                 </div>
@@ -149,8 +159,8 @@
                             <div class="feature-icon bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3">
                                 <i class="fas fa-chart-line"></i>
                             </div>
-                            <h5>Analytics & Insights</h5>
-                            <p class="text-muted">Track email patterns and get insights into your communication habits.</p>
+                            <h5 data-i18n="features.card3.title">Analytics & Insights</h5>
+                            <p class="text-muted" data-i18n="features.card3.text">Track email patterns and get insights into your communication habits.</p>
                         </div>
                     </div>
                 </div>
@@ -163,12 +173,12 @@
         <div class="container">
             <div class="row align-items-center g-4">
                 <div class="col-lg-6">
-                    <h2 class="fw-bold mb-3">Hakkımızda</h2>
-                    <p class="text-muted">Inbox Detox, e-posta karmaşasını yapay zeka ile sadeleştiren bir SaaS ürünüdür. Uzun yazışmaları özetler, önemli mesajları öne çıkarır ve günlük e-posta alışkanlıklarınızı grafiklerle görünür kılar.</p>
+                    <h2 class="fw-bold mb-3" data-i18n="about.title">About Us</h2>
+                    <p class="text-muted" data-i18n="about.text">Inbox Detox is a SaaS that declutters your inbox with AI. It summarizes long threads, surfaces important messages, and visualizes your daily email habits.</p>
                     <ul class="text-muted mb-0">
-                        <li>Gmail ile kolay bağlantı</li>
-                        <li>AI özet ve önem skoru</li>
-                        <li>Günlük/haftalık rapor ve trendler</li>
+                        <li data-i18n="about.list1">Easy Gmail connection</li>
+                        <li data-i18n="about.list2">AI summaries and priority scores</li>
+                        <li data-i18n="about.list3">Daily/weekly reports and trends</li>
                     </ul>
                 </div>
                 <div class="col-lg-6">
@@ -183,11 +193,11 @@
         <div class="container">
             <div class="row g-4">
                 <div class="col-lg-6">
-                    <h2 class="fw-bold mb-3">İletişim</h2>
-                    <p class="text-muted">Sorularınız ve iş birlikleri için bize yazın.</p>
+                    <h2 class="fw-bold mb-3" data-i18n="contact.title">Contact</h2>
+                    <p class="text-muted" data-i18n="contact.subtitle">Write to us for questions and partnerships.</p>
                     <ul class="list-unstyled text-muted">
-                        <li><i class="fas fa-envelope me-2"></i>support@inbox-detox.example</li>
-                        <li><i class="fas fa-globe me-2"></i>www.inbox-detox.example</li>
+                        <li><i class="fas fa-envelope me-2"></i><span>support@inbox-detox.example</span></li>
+                        <li><i class="fas fa-globe me-2"></i><span>www.inbox-detox.example</span></li>
                     </ul>
                 </div>
                 <div class="col-lg-6">
@@ -195,19 +205,19 @@
                         <div class="card-body">
                             <form>
                                 <div class="mb-3">
-                                    <label class="form-label">Ad Soyad</label>
-                                    <input type="text" class="form-control" placeholder="Adınız Soyadınız">
+                                    <label class="form-label" data-i18n="contact.form.name">Full Name</label>
+                                    <input type="text" class="form-control" placeholder="John Doe">
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">E-posta</label>
-                                    <input type="email" class="form-control" placeholder="ornek@eposta.com">
+                                    <label class="form-label" data-i18n="contact.form.email">Email</label>
+                                    <input type="email" class="form-control" placeholder="name@example.com">
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Mesaj</label>
-                                    <textarea class="form-control" rows="4" placeholder="Mesajınızı yazın..."></textarea>
+                                    <label class="form-label" data-i18n="contact.form.message">Message</label>
+                                    <textarea class="form-control" rows="4" placeholder="Your message..."></textarea>
                                 </div>
                                 <button type="button" class="btn btn-primary" disabled>
-                                    Gönder (yakında)
+                                    <span data-i18n="contact.form.send">Send (soon)</span>
                                 </button>
                             </form>
                         </div>
@@ -278,10 +288,10 @@
             <div class="row">
                 <div class="col-md-6">
                     <h5>Inbox Detox</h5>
-                    <p class="text-muted">AI-powered email management for everyone.</p>
+                    <p class="text-muted" data-i18n="footer.tagline">AI-powered email management for everyone.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p class="text-muted">&copy; 2024 Inbox Detox. All rights reserved.</p>
+                    <p class="text-muted" data-i18n="footer.copyright">© 2024 Inbox Detox. All rights reserved.</p>
                 </div>
             </div>
         </div>
