@@ -1,6 +1,7 @@
 import os
 from typing import Optional
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 
 class Settings(BaseSettings):
     # Database
@@ -23,7 +24,8 @@ class Settings(BaseSettings):
     app_name: str = "Inbox Detox"
     environment: str = "development"
     debug: bool = True
-    allowed_hosts: list = ["localhost", "127.0.0.1"]
+    # Comma-separated in .env: ALLOWED_HOSTS=localhost,127.0.0.1,app.example.com
+    allowed_hosts: list[str] = ["localhost", "127.0.0.1"]
     
     # Rate Limiting
     rate_limit_per_minute: int = 10
@@ -43,5 +45,13 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
+
+    # Parse comma-separated env var into list
+    @field_validator("allowed_hosts", mode="before")
+    @classmethod
+    def _parse_allowed_hosts(cls, v):
+        if isinstance(v, str):
+            return [part.strip() for part in v.split(",") if part.strip()]
+        return v
 
 settings = Settings()

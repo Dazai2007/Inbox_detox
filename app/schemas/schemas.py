@@ -1,4 +1,6 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
+from typing import Annotated
+from pydantic.types import StringConstraints
 from typing import Optional
 from datetime import datetime
 from app.models.models import EmailCategory, SubscriptionTier
@@ -9,7 +11,7 @@ class UserBase(BaseModel):
     full_name: Optional[str] = None
 
 class UserCreate(UserBase):
-    password: str
+    password: Annotated[str, StringConstraints(min_length=8, max_length=128)] = Field(..., description="At least 8 characters")
 
 class UserResponse(UserBase):
     id: int
@@ -22,8 +24,8 @@ class UserResponse(UserBase):
 
 # Email Schemas
 class EmailBase(BaseModel):
-    subject: Optional[str] = None
-    content: str
+    subject: Optional[Annotated[str, StringConstraints(max_length=500)]] = None
+    content: Annotated[str, StringConstraints(min_length=1)]
 
 class EmailCreate(EmailBase):
     pass

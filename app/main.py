@@ -39,9 +39,10 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     return JSONResponse(status_code=429, content={"detail": "Rate limit exceeded"})
 
 # CORS middleware
+origins = settings.allowed_hosts if settings.environment == "production" else ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_hosts if settings.environment == "production" else ["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
