@@ -9,8 +9,8 @@ from app.schemas.schemas import TokenData
 import uuid
 from app.core.jwt_blacklist import is_blacklisted
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing: prefer pbkdf2_sha256 (Py 3.13 friendly) but still accept bcrypt for legacy hashes
+pwd_context = CryptContext(schemes=["pbkdf2_sha256", "bcrypt"], deprecated="auto")
 
 class AuthService:
     @staticmethod

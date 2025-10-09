@@ -18,9 +18,6 @@ from app.api import auth, emails
 from app.api import verification
 from app.api import google as google_router
 
-# Create database tables
-models.Base.metadata.create_all(bind=engine)
-
 # Initialize FastAPI app
 app = FastAPI(
     title=settings.app_name,
@@ -28,6 +25,16 @@ app = FastAPI(
     version="1.0.0",
     debug=settings.debug
 )
+
+# Create database tables on startup for SQLite dev environments
+def _is_sqlite(url: str) -> bool:
+    return url.startswith("sqlite")
+
+@app.on_event("startup")
+async def _init_db_if_needed():
+    # Only auto-create in SQLite/dev to avoid bypassing migrations in Postgres
+    if _is_sqlite(settings.database_url):
+        models.Base.metadata.create_all(bind=engine)
 
 # Rate limiting
 limiter = Limiter(key_func=get_remote_address, default_limits=[f"{settings.rate_limit_per_minute}/minute"])
