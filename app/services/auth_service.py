@@ -4,7 +4,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from app.core.config import settings
-from app.models.models import User
+from app.models.models import User, RefreshToken
 from app.core.security import normalize_email, sanitize_text
 from app.schemas.schemas import TokenData
 import uuid
@@ -38,8 +38,9 @@ class AuthService:
         expire = datetime.utcnow() + (
             expires_delta or timedelta(days=settings.refresh_token_expire_days)
         )
-        to_encode.update({"exp": expire, "type": "refresh", "jti": str(uuid.uuid4())})
-        return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
+    jti = str(uuid.uuid4())
+    to_encode.update({"exp": expire, "type": "refresh", "jti": jti})
+    return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
     
     @staticmethod
     def verify_token(token: str, expected_type: str = "access") -> Optional[TokenData]:
@@ -55,6 +56,30 @@ class AuthService:
             return TokenData(email=email, type=ttype, jti=jti)
         except JWTError:
             return None
+
+    # Refresh token persistence (for rotation/revocation)
+    @staticmethod
+    def persist_refresh_token(db: Session, user: User, jti: str, expires_at: datetime) -> None:
+        rt = RefreshToken(user_id=user.id, jti=jti, expires_at=expires_at)
+        db.add(rt)
+        db.commit()
+
+    @staticmethod
+    def revoke_refresh_token(db: Session, jti: str) -> None:
+        rt = db.query(RefreshToken).filter(RefreshToken.jti == jti).first()
+        if rt and not rt.revoked:
+            rt.revoked = True
+            db.commit()
+
+    @staticmethod
+    def is_refresh_revoked_or_expired(db: Session, jti: str) -> bool:
+        rt = db.query(RefreshToken).filter(RefreshToken.jti == jti).first()
+        if not rt:
+            # If not found, treat as revoked for safety
+            return True
+        if rt.revoked or rt.expires_at < datetime.utcnow():
+            return True
+        return False
     
     @staticmethod
     def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:

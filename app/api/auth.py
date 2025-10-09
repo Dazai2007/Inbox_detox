@@ -66,6 +66,16 @@ async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depen
     refresh_token = AuthService.create_refresh_token(data={"sub": user.email})
     # Also set httpOnly cookie for refresh token for browser clients
     set_refresh_cookie(response, refresh_token, max_age_seconds=settings.refresh_token_expire_days * 24 * 3600)
+    # Persist refresh token jti for rotation/revocation
+    try:
+        payload = jwt.decode(refresh_token, settings.secret_key, algorithms=[settings.algorithm])
+        rjti = payload.get("jti")
+        exp = payload.get("exp")
+        if rjti and exp:
+            expires_at = datetime.fromtimestamp(exp, tz=timezone.utc)
+            AuthService.persist_refresh_token(db, user, rjti, expires_at)
+    except JWTError:
+        pass
     return {"access_token": access_token, "token_type": "bearer", "refresh_token": refresh_token}
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
@@ -113,13 +123,29 @@ async def logout(response: Response, body: LogoutRequest = None, token: str = De
     return {"message": "Logged out"}
 
 @router.post("/refresh-token", response_model=Token)
-async def refresh_token(body: RefreshTokenRequest | None = None, rt: str | None = Cookie(default=None, alias=settings.refresh_cookie_name)):
+async def refresh_token(response: Response, body: RefreshTokenRequest | None = None, rt: str | None = Cookie(default=None, alias=settings.refresh_cookie_name), db: Session = Depends(get_db)):
     raw_refresh = body.refresh_token if body else rt
     data = AuthService.verify_token(raw_refresh or "", expected_type="refresh")
     if not data or not data.email:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+    # Server-side revocation/rotation check
+    if data.jti and AuthService.is_refresh_revoked_or_expired(db, data.jti):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token revoked or expired")
     access_token = AuthService.create_access_token(data={"sub": data.email})
-    # Optionally rotate refresh tokens here
+    # Rotate refresh token
+    new_refresh = AuthService.create_refresh_token(data={"sub": data.email})
+    try:
+        # Revoke old, persist new
+        if data.jti:
+            AuthService.revoke_refresh_token(db, data.jti)
+        payload = jwt.decode(new_refresh, settings.secret_key, algorithms=[settings.algorithm])
+        rjti = payload.get("jti")
+        exp = payload.get("exp")
+        if rjti and exp:
+            AuthService.persist_refresh_token(db, db.query(User).filter(User.email == data.email).first(), rjti, datetime.fromtimestamp(exp, tz=timezone.utc))
+    except JWTError:
+        pass
+    set_refresh_cookie(response, new_refresh, max_age_seconds=settings.refresh_token_expire_days * 24 * 3600)
     return {"access_token": access_token, "token_type": "bearer"}
 
 
