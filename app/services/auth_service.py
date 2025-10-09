@@ -5,6 +5,7 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.models.models import User
+from app.core.security import normalize_email, sanitize_text
 from app.schemas.schemas import TokenData
 import uuid
 from app.core.jwt_blacklist import is_blacklisted
@@ -57,7 +58,8 @@ class AuthService:
     
     @staticmethod
     def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
-        user = db.query(User).filter(User.email == email).first()
+        email_norm = normalize_email(email)
+        user = db.query(User).filter(User.email == email_norm).first()
         if not user:
             return None
         # Try new field first, fallback to legacy
@@ -71,10 +73,12 @@ class AuthService:
     @staticmethod
     def create_user(db: Session, email: str, password: str, full_name: str = None) -> User:
         hashed_password = AuthService.get_password_hash(password)
+        email_norm = normalize_email(email)
+        full_name_sanitized = sanitize_text(full_name) if full_name else None
         user = User(
-            email=email,
+            email=email_norm,
             password_hash=hashed_password,
-            full_name=full_name
+            full_name=full_name_sanitized
         )
         db.add(user)
         db.commit()
@@ -83,4 +87,4 @@ class AuthService:
     
     @staticmethod
     def get_user_by_email(db: Session, email: str) -> Optional[User]:
-        return db.query(User).filter(User.email == email).first()
+        return db.query(User).filter(User.email == normalize_email(email)).first()

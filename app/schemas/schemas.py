@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Annotated
 from pydantic.types import StringConstraints
 from typing import Optional
@@ -11,7 +11,28 @@ class UserBase(BaseModel):
     full_name: Optional[str] = None
 
 class UserCreate(UserBase):
-    password: Annotated[str, StringConstraints(min_length=8, max_length=128)] = Field(..., description="At least 8 characters")
+    # Enforce strong password via validator (lookaheads unsupported by pydantic-core regex)
+    password: Annotated[
+        str,
+        StringConstraints(
+            min_length=8,
+            max_length=128,
+        ),
+    ] = Field(
+        ...,
+        description="8-128 chars, include upper, lower, digit, and special",
+    )
+
+    @field_validator("password")
+    @classmethod
+    def password_strength(cls, v: str) -> str:
+        has_lower = any(c.islower() for c in v)
+        has_upper = any(c.isupper() for c in v)
+        has_digit = any(c.isdigit() for c in v)
+        has_special = any(not c.isalnum() for c in v)
+        if not (has_lower and has_upper and has_digit and has_special):
+            raise ValueError("Password must include upper, lower, digit, and special character")
+        return v
 
 class UserResponse(UserBase):
     id: int

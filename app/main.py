@@ -70,6 +70,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add basic security headers
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    # Minimal safe set; adjust CSP if you serve inline scripts/styles
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "no-referrer")
+    # Conservative CSP; relax if needed for frontend assets
+    response.headers.setdefault("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'")
+    return response
+
 # Static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")

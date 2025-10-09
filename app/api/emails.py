@@ -10,6 +10,7 @@ from app.schemas.schemas import EmailCreate, EmailResponse, EmailAnalysis
 from slowapi.util import get_remote_address
 from app.core.limits import limiter, user_rate_limit_key
 from app.core.config import settings
+from app.core.security import sanitize_text
 from datetime import datetime, timezone
 
 router = APIRouter(prefix="/emails", tags=["emails"])
@@ -45,12 +46,16 @@ async def analyze_email(
     
     # Initialize the email analysis service
     analysis_service = EmailAnalysisService()
+
+    # Sanitize inputs to prevent XSS persistence
+    safe_subject = sanitize_text(email_data.subject) if email_data.subject else None
+    safe_content = sanitize_text(email_data.content)
     
     try:
         # Analyze the email
         analysis = analysis_service.analyze_email(
-            content=email_data.content,
-            subject=email_data.subject
+            content=safe_content,
+            subject=safe_subject
         )
         
         processing_time = int((time.time() - start_time) * 1000)
@@ -58,8 +63,8 @@ async def analyze_email(
         # Create email record in database
         email_record = Email(
             user_id=current_user.id,
-            subject=email_data.subject,
-            content=email_data.content,
+            subject=safe_subject,
+            content=safe_content,
             summary=analysis.summary,
             category=analysis.category,
             confidence_score=analysis.confidence_score,
@@ -70,8 +75,8 @@ async def analyze_email(
         analytics_record = EmailAnalytics(
             user_id=current_user.id,
             sender=None,  # optional: populate if available in future
-            subject=email_data.subject,
-            email_content=email_data.content,
+            subject=safe_subject,
+            email_content=safe_content,
             received_date=None,  # optional: set if available
             priority=None,       # optional: set if available
             category=analysis.category,
@@ -159,12 +164,14 @@ async def demo_analyze_email(request: Request, email_data: EmailCreate):
     """Demo endpoint for analyzing emails without authentication."""
     # Initialize the email analysis service
     analysis_service = EmailAnalysisService()
+    safe_subject = sanitize_text(email_data.subject) if email_data.subject else None
+    safe_content = sanitize_text(email_data.content)
     
     try:
         # Analyze the email
         analysis = analysis_service.analyze_email(
-            content=email_data.content,
-            subject=email_data.subject
+            content=safe_content,
+            subject=safe_subject
         )
         
         return analysis
