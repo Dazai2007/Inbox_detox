@@ -40,6 +40,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    # Require verified email to login (prevents fake/spam accounts usage)
+    if not user.is_verified:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Email not verified. Please verify your email.")
     
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     access_token = AuthService.create_access_token(

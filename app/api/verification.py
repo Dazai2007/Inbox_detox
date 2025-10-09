@@ -6,6 +6,8 @@ from datetime import datetime, timedelta, timezone
 from app.api.auth import get_current_user
 from app.database.database import get_db
 from app.models.models import User, VerificationToken
+from app.core.config import settings
+from app.services.email_sender import send_email
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
 _ttl_seconds = 60 * 60 * 24  # 24h
@@ -17,8 +19,22 @@ async def send_verification(current_user = Depends(get_current_user), db: Sessio
     vt = VerificationToken(user_id=current_user.id, token=token, expires_at=expires_at)
     db.add(vt)
     db.commit()
-    # TODO: send email with link /api/auth/verify-email?token=<token>
-    return {"message": "Verification email sent", "dev_token": token}
+    # Build verification URL
+    verify_url = f"{settings.app_base_url}/api/auth/verify-email?token={token}"
+    subject = "Verify your Inbox Detox email"
+    body = (
+        f"Hi,\n\nPlease verify your email by clicking the link below:\n{verify_url}\n\n"
+        f"This link will expire in 24 hours.\n\nIf you didn't create an account, you can ignore this message."
+    )
+    sent = send_email(current_user.email, subject, body)
+    if sent:
+        # In dev without SMTP configured, also return token to ease testing
+        if not settings.smtp_host or not settings.smtp_from:
+            return {"message": "Verification email sent (dev)", "dev_token": token, "verify_url": verify_url}
+        return {"message": "Verification email sent"}
+    else:
+        # If email fails, keep token in DB but report failure
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to send verification email")
 
 @router.get("/verify-email")
 async def verify_email(token: str, db: Session = Depends(get_db)):

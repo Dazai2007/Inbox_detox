@@ -13,6 +13,7 @@ import uuid
 import traceback
 
 from app.core.config import settings
+from app.core.logging_config import setup_logging
 import os
 import subprocess
 from app.core.limits import limiter
@@ -21,6 +22,9 @@ from app.models import models
 from app.api import auth, emails
 from app.api import verification
 from app.api import google as google_router
+
+# Initialize logging
+setup_logging(settings)
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -68,7 +72,9 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 async def unhandled_exception_handler(request: Request, exc: Exception):
     req_id = str(uuid.uuid4())
     # Log stack trace server-side for debugging
-    print(f"[ERROR] {req_id} {request.method} {request.url} -> {exc}\n{traceback.format_exc()}")
+    import logging
+    logger = logging.getLogger("app")
+    logger.exception(f"{req_id} {request.method} {request.url} -> {exc}")
     return JSONResponse(
         status_code=500,
         content={
@@ -118,7 +124,9 @@ async def log_requests(request: Request, call_next):
     path = request.url.path
     method = request.method
     client = request.client.host if request.client else "?"
-    print(f"{method} {path} from {client} -> {response.status_code} ({duration:.1f} ms)")
+    import logging
+    logger = logging.getLogger("app")
+    logger.info(f"{method} {path} from {client} -> {response.status_code} ({duration:.1f} ms)")
     return response
 
 # Root endpoint

@@ -45,6 +45,21 @@ class Settings(BaseSettings):
         "openid"
     )
     
+    # Logging
+    log_level: str = "INFO"  # e.g., DEBUG, INFO, WARNING, ERROR
+    log_dir: str = "logs"
+
+    # App base URL for building links in emails (verification etc.)
+    app_base_url: str = "http://127.0.0.1:8000"
+
+    # SMTP settings (optional in dev)
+    smtp_host: Optional[str] = None
+    smtp_port: int = 587
+    smtp_username: Optional[str] = None
+    smtp_password: Optional[str] = None
+    smtp_use_tls: bool = True
+    smtp_from: Optional[str] = None
+    
     class Config:
         env_file = ".env"
 

@@ -48,6 +48,14 @@ Quick usage (PowerShell):
 
 See `scripts/migrations_readme.md` for details. In dev with SQLite, tables can also be created at app startup, but production should rely on Alembic.
 
+Optional auto-migrate on startup:
+
+- Set before starting the app to apply migrations automatically:
+   - `$env:AUTO_MIGRATE_ON_STARTUP = "true"`
+   - Optionally set a specific Python executable:
+      - `$env:PYTHON_EXECUTABLE = "${PWD}\\venv\\Scripts\\python.exe"`
+   - In production, startup fails if migrations cannot be applied.
+
 # Inbox Detox - AI-Powered Email Management SaaS
 
 ## Overview
