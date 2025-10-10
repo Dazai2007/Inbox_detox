@@ -3,12 +3,13 @@ from typing import Annotated
 from pydantic.types import StringConstraints
 from typing import Optional
 from datetime import datetime
-from app.models.models import EmailCategory, SubscriptionTier
+from app.models.models import EmailCategory, SubscriptionTier, SubscriptionStatus
 
 # User Schemas
 class UserBase(BaseModel):
     email: EmailStr
     full_name: Optional[str] = None
+    timezone: Optional[str] = "UTC"
 
 class UserCreate(UserBase):
     # Enforce strong password via validator (lookaheads unsupported by pydantic-core regex)
@@ -38,6 +39,9 @@ class UserResponse(UserBase):
     id: int
     is_active: bool
     subscription_tier: SubscriptionTier
+    is_verified: bool
+    # Expose only for admin views; normal user endpoints can filter
+    is_admin: bool
     created_at: datetime
     
     class Config:
@@ -119,3 +123,19 @@ class SubscriptionResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+# Admin Schemas
+class AdminUpdateUser(BaseModel):
+    full_name: Optional[str] = None
+    is_active: Optional[bool] = None
+    is_verified: Optional[bool] = None
+    is_admin: Optional[bool] = None
+    subscription_tier: Optional[SubscriptionTier] = None
+    subscription_status: Optional[SubscriptionStatus] = None
+    timezone: Optional[str] = None
+
+class AdminSetSubscription(BaseModel):
+    plan_type: Optional[str] = None
+    status: Optional[str] = None
+    current_period_start: Optional[datetime] = None
+    current_period_end: Optional[datetime] = None

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -6,6 +6,10 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.models.models import User, RefreshToken
 from app.core.security import normalize_email, sanitize_text
+try:
+    from zoneinfo import ZoneInfo  # Python 3.9+
+except Exception:  # pragma: no cover
+    ZoneInfo = None
 from app.schemas.schemas import TokenData
 import uuid
 from app.core.jwt_blacklist import is_blacklisted
@@ -25,7 +29,7 @@ class AuthService:
     @staticmethod
     def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         to_encode = data.copy()
-        expire = datetime.utcnow() + (
+        expire = datetime.now(timezone.utc) + (
             expires_delta or timedelta(minutes=settings.access_token_expire_minutes)
         )
         to_encode.update({"exp": expire, "type": "access", "jti": str(uuid.uuid4())})
@@ -35,12 +39,12 @@ class AuthService:
     def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
         # Default 30 days for refresh
         to_encode = data.copy()
-        expire = datetime.utcnow() + (
+        expire = datetime.now(timezone.utc) + (
             expires_delta or timedelta(days=settings.refresh_token_expire_days)
         )
-    jti = str(uuid.uuid4())
-    to_encode.update({"exp": expire, "type": "refresh", "jti": jti})
-    return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
+        jti = str(uuid.uuid4())
+        to_encode.update({"exp": expire, "type": "refresh", "jti": jti})
+        return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
     
     @staticmethod
     def verify_token(token: str, expected_type: str = "access") -> Optional[TokenData]:
@@ -77,7 +81,7 @@ class AuthService:
         if not rt:
             # If not found, treat as revoked for safety
             return True
-        if rt.revoked or rt.expires_at < datetime.utcnow():
+        if rt.revoked or rt.expires_at < datetime.now(timezone.utc):
             return True
         return False
     
@@ -96,14 +100,25 @@ class AuthService:
         return user
     
     @staticmethod
-    def create_user(db: Session, email: str, password: str, full_name: str = None) -> User:
+    def create_user(db: Session, email: str, password: str, full_name: str = None, timezone_str: str | None = None) -> User:
         hashed_password = AuthService.get_password_hash(password)
         email_norm = normalize_email(email)
         full_name_sanitized = sanitize_text(full_name) if full_name else None
+        tz = "UTC"
+        if timezone_str:
+            tz_candidate = sanitize_text(timezone_str).strip()
+            if ZoneInfo is not None:
+                try:
+                    # Validate IANA timezone
+                    ZoneInfo(tz_candidate)
+                    tz = tz_candidate
+                except Exception:
+                    tz = "UTC"
         user = User(
             email=email_norm,
             password_hash=hashed_password,
-            full_name=full_name_sanitized
+            full_name=full_name_sanitized,
+            timezone=tz,
         )
         db.add(user)
         db.commit()

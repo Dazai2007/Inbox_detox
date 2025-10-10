@@ -22,11 +22,12 @@ from app.models.models import PasswordResetToken, User
 from datetime import datetime, timedelta, timezone
 import uuid
 from app.core.cookies import set_refresh_cookie, clear_refresh_cookie
+from app.schemas.api_responses import ApiMessage
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
-@router.post("/register", response_model=UserResponse)
+@router.post("/register", response_model=UserResponse, summary="Register a new user", description="Create a new user account with email and password.")
 async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     # Check if user already exists
     if AuthService.get_user_by_email(db, user_data.email):
@@ -40,12 +41,13 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
         db=db,
         email=user_data.email,
         password=user_data.password,
-        full_name=user_data.full_name
+        full_name=user_data.full_name,
+        timezone_str=user_data.timezone,
     )
     
     return user
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=Token, summary="Login and get tokens", description="Login with email and password to receive an access token and a refresh token (also set as httpOnly cookie).")
 async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = AuthService.authenticate_user(db, form_data.username, form_data.password)
     if not user:
@@ -95,11 +97,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     
     return user
 
-@router.get("/me", response_model=UserResponse)
+@router.get("/me", response_model=UserResponse, summary="Get current user", description="Return the profile of the authenticated user.")
 async def read_users_me(current_user = Depends(get_current_user)):
     return current_user
 
-@router.post("/logout")
+@router.post("/logout", summary="Logout and revoke tokens", description="Blacklists the current access token and optional provided refresh token; clears refresh cookie.", response_model=ApiMessage)
 async def logout(response: Response, body: LogoutRequest = None, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     # Blacklist current access token jti and optional refresh token jti
     try:
@@ -120,9 +122,9 @@ async def logout(response: Response, body: LogoutRequest = None, token: str = De
         except JWTError:
             pass
     clear_refresh_cookie(response)
-    return {"message": "Logged out"}
+    return ApiMessage(message="Logged out")
 
-@router.post("/refresh-token", response_model=Token)
+@router.post("/refresh-token", response_model=Token, summary="Refresh tokens (rotation)", description="Issue a new access token and rotate the refresh token. Accepts token in body or from httpOnly cookie.")
 async def refresh_token(response: Response, body: RefreshTokenRequest | None = None, rt: str | None = Cookie(default=None, alias=settings.refresh_cookie_name), db: Session = Depends(get_db)):
     raw_refresh = body.refresh_token if body else rt
     data = AuthService.verify_token(raw_refresh or "", expected_type="refresh")
@@ -150,13 +152,13 @@ async def refresh_token(response: Response, body: RefreshTokenRequest | None = N
 
 
 # Password reset: request
-@router.post("/forgot-password")
+@router.post("/forgot-password", summary="Request password reset", description="Send a password reset email if the account exists.", response_model=ApiMessage)
 async def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get_db)):
     email = body.email
     user = AuthService.get_user_by_email(db, email=email)
     # Always return 200 to prevent user enumeration
     if not user:
-        return {"message": "If an account exists, a reset email has been sent"}
+        return ApiMessage(message="If an account exists, a reset email has been sent")
 
     token = str(uuid.uuid4())
     expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
@@ -171,11 +173,11 @@ async def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get
         f"{reset_url}\n\nThis link will expire in 1 hour. If you didn't request a reset, you can ignore this message."
     )
     send_email(user.email, subject, body_text)
-    return {"message": "If an account exists, a reset email has been sent"}
+    return ApiMessage(message="If an account exists, a reset email has been sent")
 
 
 # Password reset: confirm
-@router.post("/reset-password")
+@router.post("/reset-password", summary="Reset password", description="Reset password using a valid reset token.", response_model=ApiMessage)
 async def reset_password(body: ResetPasswordRequest, db: Session = Depends(get_db)):
     token = body.token
     prt = db.query(PasswordResetToken).filter(
@@ -193,4 +195,4 @@ async def reset_password(body: ResetPasswordRequest, db: Session = Depends(get_d
     user.password_hash = hashed
     prt.used = True
     db.commit()
-    return {"message": "Password has been reset"}
+    return ApiMessage(message="Password has been reset")

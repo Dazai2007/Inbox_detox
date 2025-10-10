@@ -23,4 +23,9 @@ def user_rate_limit_key(request: Request) -> str:
 
 
 # Global limiter with default IP-based limits; endpoints can override key_func
-limiter = Limiter(key_func=get_remote_address, default_limits=[f"{settings.rate_limit_per_minute}/minute"]) 
+# Enable headers so clients receive X-RateLimit-* and Retry-After
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=[f"{settings.rate_limit_per_minute}/minute"],
+    headers_enabled=True,
+)

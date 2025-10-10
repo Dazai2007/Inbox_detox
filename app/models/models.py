@@ -36,6 +36,8 @@ class User(Base):
     hashed_password = Column(String(255), nullable=True)
     full_name = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True)
+    # Admin flag for privileged actions
+    is_admin = Column(Boolean, default=False, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)
     subscription_tier = Column(Enum(SubscriptionTier), default=SubscriptionTier.FREE)
     # Requested schema fields
@@ -43,6 +45,8 @@ class User(Base):
     gmail_connected = Column(Boolean, default=False, nullable=False)
     gmail_refresh_token = Column(String(1024), nullable=True)
     stripe_customer_id = Column(String(255), nullable=True)
+    # User preferred timezone (IANA string, e.g., "Europe/Istanbul"), default UTC
+    timezone = Column(String(64), nullable=False, default="UTC")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     

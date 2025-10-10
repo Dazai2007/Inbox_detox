@@ -1,3 +1,61 @@
+## Backups & Disaster Recovery
+
+This project ships with simple backup/restore scripts.
+
+### Configuration
+
+Settings in `app/core/config.py` (or via environment):
+
+- `BACKUP_DIR` (default: `backups`)
+- `BACKUP_RETENTION` (default: `7`) – number of backups to keep
+
+### Create a backup
+
+Runs for SQLite (file copy) and Postgres (pg_dump required in PATH):
+
+```powershell
+C:/Users/Lenovo/AppData/Local/Programs/Python/Python313/python.exe scripts/backup_db.py
+```
+
+Backups are created under `backups/` as either `.bak` (SQLite) or `.sql` (Postgres). The script prunes old backups beyond retention.
+
+### Restore from a backup
+
+```powershell
+C:/Users/Lenovo/AppData/Local/Programs/Python/Python313/python.exe scripts/restore_db.py <path-to-backup>
+```
+
+For Postgres, `psql` is required in PATH.
+
+### Scheduling (Windows Task Scheduler)
+
+Create a daily task at 02:00:
+
+1. Open Task Scheduler → Create Basic Task
+2. Trigger: Daily at 02:00
+3. Action: Start a program
+4. Program/script:
+   `C:/Users/Lenovo/AppData/Local/Programs/Python/Python313/python.exe`
+5. Add arguments:
+   `scripts/backup_db.py`
+6. Start in: your repo folder
+
+### Disaster Recovery Playbook
+
+1. Stop the app.
+2. Provision a new database (or use a fresh file for SQLite).
+3. Restore latest backup using the restore script.
+4. Run Alembic migrations to head:
+
+```powershell
+C:/Users/Lenovo/AppData/Local/Programs/Python/Python313/python.exe -m alembic upgrade head
+```
+
+5. Start the app and run `/health`.
+6. Verify admin login and a basic email analyze flow.
+
+For production Postgres: also back up env/config secrets; consider WAL archiving and off-site backups.
+
 # Inbox Detox
 ## Postgres quickstart
 
@@ -13,6 +71,8 @@
    - Copy `.env.example` → `.env` and set:
      - `DATABASE_URL=postgresql+psycopg2://inbox:inbox@localhost:5432/inbox_detox`
      - `SECRET_KEY=...`
+       - For production, set CORS origins (comma-separated):
+          - `CORS_ALLOWED_ORIGINS=https://app.example.com,https://admin.example.com`
      - Optional limits:
        - `RATE_LIMIT_PER_MINUTE=10`
        - `FREE_MONTHLY_ANALYSIS_LIMIT=20`
@@ -30,6 +90,17 @@
 
    - Open http://127.0.0.1:8000/docs
    - Use /api/auth/register → /api/auth/login → /emails/analyze
+
+## API Documentation
+
+- Swagger UI: http://127.0.0.1:8000/docs
+- ReDoc: http://127.0.0.1:8000/redoc
+- OpenAPI JSON: http://127.0.0.1:8000/openapi.json
+
+Export OpenAPI schema to openapi.json locally:
+
+- VS Code Task: "Docs: Export OpenAPI JSON"
+- Or run: `python scripts/export_openapi.py`
 
 ## Migrations (Alembic)
 
@@ -55,6 +126,29 @@ Optional auto-migrate on startup:
    - Optionally set a specific Python executable:
       - `$env:PYTHON_EXECUTABLE = "${PWD}\\venv\\Scripts\\python.exe"`
    - In production, startup fails if migrations cannot be applied.
+
+## CORS configuration
+
+In development, all origins are allowed for convenience. In production, the API only allows the origins you specify via `CORS_ALLOWED_ORIGINS` (comma-separated). If you leave it empty in production, no origins will be allowed.
+
+Examples:
+
+- Allow a single frontend app:
+   - `CORS_ALLOWED_ORIGINS=https://app.example.com`
+- Allow multiple subdomains:
+   - `CORS_ALLOWED_ORIGINS=https://app.example.com,https://admin.example.com`
+
+   ## Startup configuration validation
+
+   On startup, the app validates critical environment variables and configuration:
+
+   - ENVIRONMENT must be one of: development, staging, production
+   - SECRET_KEY must be set and strong (>= 32 chars) in production
+   - In production: CORS_ALLOWED_ORIGINS must be non-empty
+   - In production: DATABASE_URL must not be SQLite
+   - COOKIE_SAMESITE must be one of lax, strict, none (note: none requires Secure cookies and HTTPS)
+
+   Errors cause startup to fail in production; in development, errors are logged and the app continues to aid local debugging.
 
 # Inbox Detox - AI-Powered Email Management SaaS
 

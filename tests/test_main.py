@@ -41,10 +41,11 @@ def test_register_user():
     """Test user registration."""
     user_data = {
         "email": "test@example.com",
-        "password": "testpassword123",
-        "full_name": "Test User"
+        "password": "StrongP@ssw0rd",
+        "full_name": "Test User",
+        "timezone": "UTC",
     }
     
-    response = client.post("/auth/register", json=user_data)
+    response = client.post("/api/auth/register", json=user_data)
     # Should succeed or fail with user already exists
     assert response.status_code in [200, 400]

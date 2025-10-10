@@ -8,11 +8,12 @@ from app.database.database import get_db
 from app.models.models import User, VerificationToken
 from app.core.config import settings
 from app.services.email_sender import send_email
+from app.schemas.api_responses import ApiMessage
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
 _ttl_seconds = 60 * 60 * 24  # 24h
 
-@router.post("/send-verification")
+@router.post("/send-verification", summary="Send verification email", description="Generate a verification token and send a verification email to the current user.", response_model=ApiMessage)
 async def send_verification(current_user = Depends(get_current_user), db: Session = Depends(get_db)):
     token = str(uuid.uuid4())
     expires_at = datetime.now(timezone.utc) + timedelta(seconds=_ttl_seconds)
@@ -30,13 +31,13 @@ async def send_verification(current_user = Depends(get_current_user), db: Sessio
     if sent:
         # In dev without SMTP configured, also return token to ease testing
         if not settings.smtp_host or not settings.smtp_from:
-            return {"message": "Verification email sent (dev)", "dev_token": token, "verify_url": verify_url}
-        return {"message": "Verification email sent"}
+            return ApiMessage(message="Verification email sent (dev)")
+        return ApiMessage(message="Verification email sent")
     else:
         # If email fails, keep token in DB but report failure
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to send verification email")
 
-@router.get("/verify-email")
+@router.get("/verify-email", summary="Verify email", description="Verify the user's email address using a token.", response_model=ApiMessage)
 async def verify_email(token: str, db: Session = Depends(get_db)):
     vt = db.query(VerificationToken).filter(VerificationToken.token == token, VerificationToken.used == False).first()  # noqa: E712
     if not vt:
@@ -49,4 +50,4 @@ async def verify_email(token: str, db: Session = Depends(get_db)):
     user.is_verified = True
     vt.used = True
     db.commit()
-    return {"message": "Email verified"}
+    return ApiMessage(message="Email verified")
