@@ -117,6 +117,71 @@ Export OpenAPI schema to openapi.json locally:
 - VS Code Task: "Docs: Export OpenAPI JSON"
 - Or run: `python scripts/export_openapi.py`
 
+## Frontend ↔ Backend API Integration
+
+This project exposes a RESTful API via FastAPI and consumes it from the React (Vite) frontend using Axios. You can integrate the two in development and production in two main ways.
+
+### Option A: Separate origins (recommended during development)
+
+- Backend runs at http://127.0.0.1:8000
+- Frontend dev server runs at http://127.0.0.1:5173
+
+Setup:
+
+1) Backend: start API (with auto reload)
+   - `uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload`
+
+2) Frontend: configure Vite dev proxies (already in `frontend/vite.config.ts`):
+   - Proxies `/api`, `/emails`, `/auth`, `/google`, `/health` to `http://127.0.0.1:8000`
+
+3) Frontend: start Vite dev server
+   - `npm run dev --prefix frontend`
+
+Axios base URL:
+
+- If `VITE_API_URL` is not defined, the Axios client uses relative URLs, so requests will be proxied by Vite to the backend. This is simplest for dev.
+
+### Option B: Single origin (serve built SPA from FastAPI)
+
+Build frontend and let FastAPI serve it from `/` alongside the API under `/api/*` and other routes.
+
+1) Build the frontend
+   - `npm run build --prefix frontend`
+
+2) Ensure these settings in `.env` or defaults:
+   - `SERVE_FRONTEND=true`
+   - `FRONTEND_DIST_DIR=frontend/dist`
+
+3) Start the backend
+   - `uvicorn app.main:app --host 127.0.0.1 --port 8000`
+
+4) Open http://127.0.0.1:8000 (SPA) and use the API at `/api/...`
+
+Axios base URL:
+
+- Set `VITE_API_URL=/` in `frontend/.env.local` if you want absolute base path (or leave undefined to use relative paths). When deployed behind the same origin, relative paths work naturally.
+
+### CORS
+
+- In development, CORS is permissive (all origins) for convenience.
+- In production, specify allowed origins via `CORS_ALLOWED_ORIGINS` (comma-separated), e.g.:
+  - `CORS_ALLOWED_ORIGINS=https://app.example.com`
+
+### Environment variables (frontend)
+
+- `VITE_API_URL` (optional): override Axios base URL. Examples:
+  - `VITE_API_URL="http://127.0.0.1:8000"` (separate origins dev or staging)
+  - `VITE_API_URL="/"` (single-origin prod with SPA served by FastAPI)
+
+### Google OAuth and Gmail
+
+- OAuth endpoints are mounted under `/google/...` in FastAPI.
+- In dev, Vite proxies `/google` to the API, so redirects and callbacks continue to work at different ports.
+- Configure these in `.env`:
+  - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
+  - `GOOGLE_REDIRECT_URI=http://127.0.0.1:8000/google/oauth2/callback`
+
+
 ## Migrations (Alembic)
 
 This project uses Alembic for database schema migrations (no Flask extensions required).
