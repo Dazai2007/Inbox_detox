@@ -175,11 +175,30 @@ Axios base URL:
 
 ### Google OAuth and Gmail
 
-- OAuth endpoints are mounted under `/google/...` in FastAPI.
-- In dev, Vite proxies `/google` to the API, so redirects and callbacks continue to work at different ports.
-- Configure these in `.env`:
-  - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
-  - `GOOGLE_REDIRECT_URI=http://127.0.0.1:8000/google/oauth2/callback`
+Gmail OAuth flow is provided under `/api/gmail/*` (API-only standardization):
+
+- GET `/api/gmail/connect_url` → returns Google consent URL (authenticated)
+- GET `/api/gmail/connect` → optional convenience redirect to Google (authenticated)
+- GET `/api/gmail/callback` → OAuth callback; persists tokens on the user (uses `GOOGLE_REDIRECT_URI`)
+- GET `/api/gmail/status` → { connected, token_expires_at }
+- POST `/api/gmail/disconnect` → clears stored tokens
+
+Configure in backend `.env`:
+
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_REDIRECT_URI=http://127.0.0.1:8000/api/gmail/callback` (dev default)
+
+Frontend usage:
+
+- Call `/api/gmail/connect_url` from the dashboard and set `window.location.href` to the returned URL.
+- After Google redirects back to `/api/gmail/callback`, the app updates the user’s Gmail connection state; you can poll `/api/gmail/status` to render UI.
+
+### Token transport (JWT)
+
+- Login: `POST /api/auth/login` returns `{ access_token, token_type }` (and refresh cookie if configured).
+- Frontend stores `access_token` (localStorage or cookie) and sends `Authorization: Bearer <token>` on subsequent requests.
+- Refresh: `POST /api/auth/refresh-token` issues a fresh access token; rotation is enforced server-side.
+
 
 ## Migrating to API-only backend + separate frontend
 

@@ -22,7 +22,6 @@ from app.database.database import engine, get_db
 from app.models import models
 from app.api import auth, emails
 from app.api import verification
-from app.api import google as google_router
 from app.api import admin as admin_router
 from app.api import analytics as analytics_router
 from app.api import gmail as gmail_router
@@ -209,7 +208,6 @@ async def security_headers(request: Request, call_next):
 app.include_router(auth.router)
 app.include_router(emails.router)
 app.include_router(verification.router)
-app.include_router(google_router.router)
 app.include_router(admin_router.router)
 app.include_router(analytics_router.router)
 app.include_router(gmail_router.router)

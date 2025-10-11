@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     google_client_id: Optional[str] = None
     google_client_secret: Optional[str] = None
     # Default redirect in dev; override in .env for prod
-    google_redirect_uri: str = "http://127.0.0.1:8000/google/oauth2/callback"
+    google_redirect_uri: str = "http://127.0.0.1:8000/api/gmail/callback"
     # Space-separated scopes string expected by Google
     google_scopes: str = (
         "https://www.googleapis.com/auth/gmail.readonly "
