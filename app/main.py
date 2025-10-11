@@ -27,6 +27,7 @@ from app.api import verification
 from app.api import google as google_router
 from app.api import admin as admin_router
 from app.api import analytics as analytics_router
+from app.api import gmail as gmail_router
 
 # Initialize logging
 setup_logging(settings)
@@ -44,15 +45,19 @@ tags_metadata = [
 ]
 
 # Initialize FastAPI app
+_docs_url = "/docs" if settings.environment != "production" else None
+_redoc_url = "/redoc" if settings.environment != "production" else None
+_openapi_url = "/openapi.json" if settings.environment != "production" else None
+
 app = FastAPI(
     title=settings.app_name,
     description="AI-powered email management SaaS platform",
     version="1.0.0",
     debug=settings.debug,
     openapi_tags=tags_metadata,
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json",
+    docs_url=_docs_url,
+    redoc_url=_redoc_url,
+    openapi_url=_openapi_url,
     contact={
         "name": "Inbox Detox Support",
         "url": "https://example.com/support",
@@ -183,13 +188,31 @@ async def security_headers(request: Request, call_next):
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
     response.headers.setdefault("X-Frame-Options", "DENY")
     response.headers.setdefault("Referrer-Policy", "no-referrer")
-    # Conservative CSP; relax if needed for frontend assets
-    response.headers.setdefault("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'")
+    # Content Security Policy
+    # Base policy, relaxed if CAPTCHA (Turnstile) is enabled
+    csp_parts = [
+        "default-src 'self'",
+        "img-src 'self' data:",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "frame-ancestors 'none'",
+    ]
+    if settings.captcha_enabled_login or settings.captcha_enabled_register:
+        # Turnstile requires loading scripts and iframes from challenges.cloudflare.com
+        csp_parts.append("script-src 'self' https://challenges.cloudflare.com")
+        csp_parts.append("frame-src https://challenges.cloudflare.com")
+        # Optional: inline styles may be required by components; keep conservative otherwise
+        csp_parts.append("style-src 'self' 'unsafe-inline'")
+    response.headers.setdefault("Content-Security-Policy", "; ".join(csp_parts))
     return response
 
-# Static files and templates
+# Static files and (optional) serving of built frontend
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+
+# Optionally serve built frontend (single-origin deployment)
+if settings.serve_frontend and os.path.exists(settings.frontend_dist_dir):
+    app.mount("/assets", StaticFiles(directory=os.path.join(settings.frontend_dist_dir, "assets")), name="assets")
 
 # Include API routers
 app.include_router(auth.router)
@@ -198,6 +221,7 @@ app.include_router(verification.router)
 app.include_router(google_router.router)
 app.include_router(admin_router.router)
 app.include_router(analytics_router.router)
+app.include_router(gmail_router.router)
 
 # Simple request logging middleware
 @app.middleware("http")
@@ -213,10 +237,44 @@ async def log_requests(request: Request, call_next):
     logger.info(f"{method} {path} from {client} -> {response.status_code} ({duration:.1f} ms)")
     return response
 
-# Root endpoint
+# Root endpoint (fallbacks)
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
+    # Prefer serving built SPA if available
+    if settings.serve_frontend:
+        index_path = os.path.join(settings.frontend_dist_dir, "index.html")
+        if os.path.exists(index_path):
+            with open(index_path, "r", encoding="utf-8") as f:
+                return HTMLResponse(f.read())
+    # Fallback to template if SPA not built
     return templates.TemplateResponse("index.html", {"request": request})
+
+from starlette.requests import Request as StarletteRequest
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+@app.exception_handler(404)
+async def spa_404_handler(request: StarletteRequest, exc: StarletteHTTPException):
+    """Serve SPA index.html only for unknown non-API routes requesting HTML.
+    This avoids interfering with API routes and tests that expect JSON/404.
+    """
+    try:
+        path = request.url.path.lstrip('/')
+        accept = request.headers.get('accept', '')
+        is_html = 'text/html' in accept
+        # Exclude known API/static/doc paths
+        excluded_prefixes = ("api/", "static/", "assets/", "docs", "redoc", "openapi.json", "health", "emails", "google", "admin")
+        if settings.serve_frontend and is_html and not any(path.startswith(p) for p in excluded_prefixes):
+            index_path = os.path.join(settings.frontend_dist_dir, "index.html")
+            if os.path.exists(index_path):
+                with open(index_path, "r", encoding="utf-8") as f:
+                    return HTMLResponse(f.read())
+    except Exception:
+        pass
+    # Default: propagate original 404 in JSON envelope format
+    return JSONResponse(
+        status_code=404,
+        content=ErrorEnvelope(success=False, error=ApiError(code=404, message="Not found")).model_dump(),
+    )
 
 # Health check
 @app.get("/health", summary="Health check", description="Returns service health, DB, OpenAI, and Redis status.", response_model=HealthStatus)

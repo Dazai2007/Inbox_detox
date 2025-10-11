@@ -44,6 +44,8 @@ class User(Base):
     subscription_status = Column(Enum(SubscriptionStatus), default=SubscriptionStatus.FREE, nullable=False)
     gmail_connected = Column(Boolean, default=False, nullable=False)
     gmail_refresh_token = Column(String(1024), nullable=True)
+    gmail_access_token = Column(String(2048), nullable=True)
+    gmail_token_expiry = Column(DateTime(timezone=True), nullable=True)
     stripe_customer_id = Column(String(255), nullable=True)
     # User preferred timezone (IANA string, e.g., "Europe/Istanbul"), default UTC
     timezone = Column(String(64), nullable=False, default="UTC")

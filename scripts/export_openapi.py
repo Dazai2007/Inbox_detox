@@ -1,3 +1,21 @@
+import sys
+from pathlib import Path
+
+# Ensure project root on sys.path
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from app.main import app
+
+def main() -> None:
+    schema = app.openapi()
+    out = ROOT / "openapi.json"
+    out.write_text(__import__("json").dumps(schema, indent=2), encoding="utf-8")
+    print(f"Wrote OpenAPI schema to {out}")
+
+if __name__ == "__main__":
+    main()
 import json
 from fastapi.testclient import TestClient
 

@@ -1,0 +1,200 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Theme variables */
+:root {
+	/* Light (minimal) */
+	--bg: #F9FAFB;
+	--text: #0F172A;
+	--muted: #64748B;
+	--accent: #3B82F6; /* blue */
+	--accent2: #9333EA; /* purple */
+	--card-rgb: 255,255,255; /* #FFFFFF */
+	--border: #E5E7EB;
+	--surface-alpha: 0.95;
+	--gradient: linear-gradient(135deg, #F9FAFB, #ffffff);
+}
+
+[data-theme="dark"] {
+	--bg: #0F172A;
+	--text: #F8FAFC;
+	--muted: #94A3B8;
+	--accent: #3B82F6; /* blue */
+	--accent2: #6366F1; /* indigo */
+	--card-rgb: 30,41,59; /* #1E293B */
+	--border: #334155;
+	--surface-alpha: 0.90;
+	--gradient: linear-gradient(135deg, #0F172A, #1E293B, #312E81);
+}
+
+[data-theme="gradient"] {
+	/* Gradient dark variant */
+	--bg: #0F172A;
+	--text: #F8FAFC;
+	--muted: #94A3B8;
+	--accent: #3B82F6; /* mavi */
+	--accent2: #6366F1; /* mor/indigo */
+	--card-rgb: 30,41,59;
+	--border: rgba(255,255,255,0.08);
+	--surface-alpha: 0.68; /* daha şeffaf, daha az koyu kutular */
+	--gradient: linear-gradient(135deg, #0F172A, #1E293B, #312E81);
+}
+
+/* App background uses current theme gradient */
+body {
+	font-family: Inter, Manrope, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+	background: var(--gradient);
+	color: var(--text);
+	background-attachment: fixed;
+}
+
+/* Soft noise overlay (very low opacity) for depth without eye strain) */
+/* Blurred accent blobs for dramatic mesh look */
+.bg-noise::before {
+	content: "";
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 0;
+	background:
+		radial-gradient(900px 600px at -10% -10%, rgba(59,130,246,0.28), transparent 60%),
+		radial-gradient(800px 600px at 110% 0%, rgba(99,102,241,0.24), transparent 60%),
+		radial-gradient(700px 600px at 50% 120%, rgba(56,189,248,0.18), transparent 55%);
+	filter: blur(70px) saturate(115%);
+}
+
+/* Subtle vignette for extra depth */
+.bg-noise::after {
+	content: "";
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	background:
+		radial-gradient(1200px 800px at 50% 20%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.35) 100%),
+		url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity="0.025"/></svg>');
+	background-repeat: no-repeat, repeat;
+	z-index: 0;
+}
+
+/* Elevate white surfaces slightly */
+.card {
+	background-color: rgba(var(--card-rgb), var(--surface-alpha)); /* default */
+	backdrop-filter: saturate(120%) blur(10px);
+	border: 1px solid var(--border);
+	border-radius: 0.75rem; /* 12px rounded-xl */
+	box-shadow: 0 8px 24px rgba(0,0,0,0.16);
+}
+
+/* Make cards lighter, less blocky on gradient dark */
+[data-theme="gradient"] .card {
+	background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.045));
+	border-color: rgba(255,255,255,0.08);
+}
+
+/* Optional gradient border accent for hero cards */
+.card--accent {
+	position: relative;
+	background: linear-gradient(rgba(255,255,255,0.06), rgba(255,255,255,0.045)) padding-box,
+				linear-gradient(135deg, rgba(59,130,246,0.35), rgba(99,102,241,0.35)) border-box;
+	border: 1px solid transparent;
+}
+.card--accent:hover { box-shadow: 0 10px 32px rgba(2, 132, 199, 0.22); transform: translateY(-1px); transition: transform .15s ease, box-shadow .2s ease; }
+
+/* Container spacing harmony */
+.container {
+	@apply max-w-6xl mx-auto px-4;
+}
+
+	/* Themed button and input helpers */
+	.btn-primary {
+		background: var(--accent);
+		color: #fff;
+		border: 1px solid color-mix(in srgb, var(--accent) 85%, #000 0%);
+		padding: 0.5rem 0.875rem;
+		border-radius: 0.5rem;
+		font-weight: 600;
+		transition: background-color .15s ease, box-shadow .2s ease, transform .15s ease;
+	}
+	.btn-primary:hover {
+		background: color-mix(in srgb, var(--accent) 85%, var(--accent2) 15%);
+		box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 25%, transparent);
+		transform: translateY(-1px) scale(1.02);
+	}
+	.btn-primary:active { transform: translateY(1px); }
+	.btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+
+	.input {
+		background: rgba(var(--card-rgb), 0.9);
+		color: var(--text);
+		border: 1px solid var(--border);
+		border-radius: 0.5rem;
+		padding: 0.5rem 0.75rem;
+	}
+	.input::placeholder { color: color-mix(in srgb, var(--text) 40%, transparent); }
+	.input:focus { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); border-color: var(--accent); }
+
+/* Badges for status, etc. */
+.badge { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.5rem; border-radius: 9999px; border: 1px solid transparent; font-size: 0.75rem; }
+.badge-success { color: #22C55E; background: rgba(34,197,94,0.12); border-color: rgba(34,197,94,0.25); }
+.badge-danger { color: #EF4444; background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.25); }
+.badge-warn { color: #F59E0B; background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.25); }
+
+/* Muted helper */
+.text-muted { color: var(--muted); }
+
+/* --- Multicolor Nexa brand and UI (snippet integration) --- */
+/* Palette additions (do not override existing unless present) */
+:root {
+	--bg-2: #201919;
+	--deep-red: #8E1616;
+	--mid-red: #D84040;
+	--text-muted: #CFCFCF;
+	--g-blue: #4285F4;
+	--g-red: #DB4437;
+	--g-yellow: #F4B400;
+	--g-green: #0F9D58;
+	--shadow: 0 8px 24px rgba(0,0,0,0.35);
+	--radius: 14px;
+}
+
+/* Optional brand font for logo only */
+.brand, .logo { font-family: "Nunito Sans", Inter, Manrope, ui-sans-serif, system-ui; }
+.brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo { font-weight: 700; font-size: 22px; letter-spacing: 0.2px; }
+.g-blue{ color: var(--g-blue); } .g-red{ color: var(--g-red); } .g-yellow{ color: var(--g-yellow); } .g-green{ color: var(--g-green); }
+
+/* Red-Black mixed gradient logo (per request) */
+.logo-rb {
+	background: conic-gradient(from 120deg,
+		#0b0b0b 0%, #8E1616 18%, #D84040 32%, #1D1616 47%, #8E1616 62%, #D84040 78%, #0b0b0b 100%);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	text-fill-color: transparent;
+}
+
+/* Header bar */
+.header { position: sticky; top: 0; backdrop-filter: saturate(140%) blur(10px); background: rgba(29, 22, 22, 0.65); border-bottom: 1px solid var(--border); padding: 14px 20px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px; z-index: 20; }
+.header .nav { display: inline-flex; gap: 12px; }
+.header .nav a { color: var(--text); opacity: 0.8; text-decoration: none; font-weight: 600; padding: 8px 10px; border-radius: 10px; }
+.header .nav a:hover { opacity: 1; background: rgba(255,255,255,0.05); }
+
+/* Buttons */
+.button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--mid-red); color: #1B0F0F; font-weight: 700; border: 0; padding: 10px 14px; border-radius: 12px; box-shadow: 0 4px 14px rgba(216, 64, 64, 0.35); transition: transform .15s ease, box-shadow .2s ease, filter .2s ease; cursor: pointer; }
+.button:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.button:active { transform: translateY(0); box-shadow: 0 6px 22px rgba(216, 64, 64, 0.45); }
+.button.gmail { background: var(--g-blue); color: #fff; box-shadow: 0 4px 14px rgba(66, 133, 244, 0.35); }
+.button.gmail:hover { filter: brightness(1.06); }
+
+/* Login card helpers */
+.login-wrap { max-width: 440px; margin: 50px auto; background: linear-gradient(180deg, rgba(142,22,22,0.08), rgba(29,22,22,0.9)); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; }
+.login-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.lang-select { background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; }
+.alert { margin: 12px 0 16px; padding: 10px 12px; border-radius: 10px; color: #FFECEC; background: rgba(219, 68, 55, 0.14); border: 1px solid rgba(219, 68, 55, 0.35); }
+
+/* Dashboard grid/cards (non-breaking with Tailwind) */
+.grid.cards { grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 16px; margin: 24px auto; }
+.card .label { color: var(--text-muted); font-size: 13px; letter-spacing: 0.4px; }
+.card .value { margin-top: 8px; font-size: 22px; font-weight: 700; color: var(--mid-red); }
+

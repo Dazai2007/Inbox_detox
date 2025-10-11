@@ -23,12 +23,21 @@ from datetime import datetime, timedelta, timezone
 import uuid
 from app.core.cookies import set_refresh_cookie, clear_refresh_cookie
 from app.schemas.api_responses import ApiMessage
+from app.core.captcha import verify_turnstile_token
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 @router.post("/register", response_model=UserResponse, summary="Register a new user", description="Create a new user account with email and password.")
-async def register(user_data: UserCreate, db: Session = Depends(get_db)):
+async def register(request: Request, user_data: UserCreate, db: Session = Depends(get_db)):
+    # Optional CAPTCHA verification
+    if settings.captcha_enabled_register:
+        token = request.headers.get("X-Captcha-Token")
+        if not token:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Captcha token missing")
+        ok = await verify_turnstile_token(token, request.client.host if request.client else None)
+        if not ok:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Captcha validation failed")
     # Check if user already exists
     if AuthService.get_user_by_email(db, user_data.email):
         raise HTTPException(
@@ -48,7 +57,15 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     return user
 
 @router.post("/login", response_model=Token, summary="Login and get tokens", description="Login with email and password to receive an access token and a refresh token (also set as httpOnly cookie).")
-async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+async def login(request: Request, response: Response, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    # Optional CAPTCHA verification
+    if settings.captcha_enabled_login:
+        token = request.headers.get("X-Captcha-Token")
+        if not token:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Captcha token missing")
+        ok = await verify_turnstile_token(token, request.client.host if request.client else None)
+        if not ok:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Captcha validation failed")
     user = AuthService.authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -56,8 +73,8 @@ async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depen
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    # Require verified email to login (prevents fake/spam accounts usage)
-    if not user.is_verified:
+    # Require verified email to login (can be bypassed in dev)
+    if not user.is_verified and not settings.allow_unverified_login:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Email not verified. Please verify your email.")
     
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
@@ -166,7 +183,7 @@ async def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get
     db.add(prt)
     db.commit()
 
-    reset_url = f"{settings.app_base_url}/api/auth/reset-password?token={token}"
+    reset_url = f"{settings.app_base_url}/reset-password?token={token}"
     subject = "Reset your Inbox Detox password"
     body_text = (
         f"Hi,\n\nYou requested to reset your password. Use the link below to set a new password:\n"

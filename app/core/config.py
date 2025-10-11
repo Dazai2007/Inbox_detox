@@ -59,6 +59,17 @@ class Settings(BaseSettings):
     # App base URL for building links in emails (verification etc.)
     app_base_url: str = "http://127.0.0.1:8000"
 
+    # Frontend serving (optional): serve built SPA from FastAPI
+    serve_frontend: bool = True
+    frontend_dist_dir: str = "frontend/dist"
+
+    # CAPTCHA / Human verification (Cloudflare Turnstile)
+    # When enabled, login/register endpoints will require a valid CAPTCHA token
+    captcha_enabled_login: bool = False
+    captcha_enabled_register: bool = False
+    turnstile_site_key: Optional[str] = None
+    turnstile_secret_key: Optional[str] = None
+
     # SMTP settings (optional in dev)
     smtp_host: Optional[str] = None
     smtp_port: int = 587
@@ -75,6 +86,9 @@ class Settings(BaseSettings):
     # Backups
     backup_dir: str = "backups"
     backup_retention: int = 7  # keep last N backups per database
+
+    # Development convenience: allow login for unverified users
+    allow_unverified_login: bool = False
     
     class Config:
         env_file = ".env"
@@ -150,6 +164,25 @@ class Settings(BaseSettings):
         smtp_fields = [self.smtp_host, self.smtp_username, self.smtp_password]
         if any(smtp_fields) and not self.smtp_host:
             warnings.append("SMTP settings partially provided; SMTP_HOST is required to send emails.")
+
+        # CAPTCHA sanity checks
+        if self.captcha_enabled_login or self.captcha_enabled_register:
+            if not self.turnstile_secret_key:
+                if env == "production":
+                    errors.append("CAPTCHA enabled but TURNSTILE_SECRET_KEY missing.")
+                else:
+                    warnings.append("CAPTCHA enabled but TURNSTILE_SECRET_KEY missing; verification will fail.")
+
+        # Frontend serving folder existence check (warn only)
+        try:
+            if self.serve_frontend:
+                dist_dir = self.frontend_dist_dir
+                if not (isinstance(dist_dir, str) and dist_dir and os.path.exists(dist_dir)):
+                    warnings.append(
+                        f"Frontend serving is enabled but directory '{self.frontend_dist_dir}' not found. Build the frontend (npm run build)."
+                    )
+        except Exception:
+            pass
 
         return errors, warnings
 

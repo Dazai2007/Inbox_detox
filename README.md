@@ -54,6 +54,21 @@ C:/Users/Lenovo/AppData/Local/Programs/Python/Python313/python.exe -m alembic up
 5. Start the app and run `/health`.
 6. Verify admin login and a basic email analyze flow.
 
+### Optional: Human verification (CAPTCHA)
+
+To reduce automated abuse, you can enable Cloudflare Turnstile on Login and/or Register.
+
+Backend (.env):
+
+- `CAPTCHA_ENABLED_LOGIN=true` and/or `CAPTCHA_ENABLED_REGISTER=true`
+- `TURNSTILE_SECRET_KEY=<your_secret>`
+
+Frontend (frontend/.env):
+
+- `VITE_TURNSTILE_SITE_KEY=<your_site_key>`
+
+When enabled, the forms render a CAPTCHA widget and the API verifies the token server-side before proceeding.
+
 For production Postgres: also back up env/config secrets; consider WAL archiving and off-site backups.
 
 # Inbox Detox

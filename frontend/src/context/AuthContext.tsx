@@ -6,8 +6,8 @@ interface User { id: number; email: string; full_name?: string }
 interface AuthContextValue {
   user: User | null
   token: string | null
-  login: (email: string, password: string) => Promise<void>
-  register: (email: string, password: string, fullName?: string) => Promise<void>
+  login: (email: string, password: string, captchaToken?: string | null) => Promise<void>
+  register: (email: string, password: string, fullName?: string, captchaToken?: string | null) => Promise<void>
   logout: () => void
 }
 
@@ -20,25 +20,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (token) {
       // Try fetch current user
-      client.get('/auth/me').then(res => setUser(res.data)).catch(() => {})
+      client.get('/api/auth/me').then(res => setUser(res.data)).catch(() => {})
     }
   }, [token])
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, captchaToken?: string | null) => {
     const form = new URLSearchParams()
     form.set('username', email)
     form.set('password', password)
-    const res = await client.post('/auth/login', form, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
+    const headers: Record<string, string> = { 'Content-Type': 'application/x-www-form-urlencoded' }
+    if (captchaToken) headers['X-Captcha-Token'] = captchaToken
+    const res = await client.post('/api/auth/login', form, { headers })
     const t = res.data.access_token as string
     localStorage.setItem('token', t)
     setToken(t)
-    const me = await client.get('/auth/me')
+    const me = await client.get('/api/auth/me')
     setUser(me.data)
   }
 
-  const register = async (email: string, password: string, fullName?: string) => {
-    await client.post('/auth/register', { email, password, full_name: fullName })
-    await login(email, password)
+  const register = async (email: string, password: string, fullName?: string, captchaToken?: string | null) => {
+    const headers: Record<string, string> = {}
+    if (captchaToken) headers['X-Captcha-Token'] = captchaToken
+    await client.post('/api/auth/register', { email, password, full_name: fullName }, { headers })
   }
 
   const logout = () => {
