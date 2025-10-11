@@ -59,9 +59,17 @@ class Settings(BaseSettings):
     # App base URL for building links in emails (verification etc.)
     app_base_url: str = "http://127.0.0.1:8000"
 
-    # Frontend serving (optional): serve built SPA from FastAPI
-    serve_frontend: bool = True
+    # Frontend serving: disabled by default in API-only mode
+    serve_frontend: bool = False
     frontend_dist_dir: str = "frontend/dist"
+
+    # Development CORS convenience: explicit dev origins when environment != production
+    dev_cors_allowed_origins: list[str] = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
 
     # CAPTCHA / Human verification (Cloudflare Turnstile)
     # When enabled, login/register endpoints will require a valid CAPTCHA token
@@ -104,6 +112,13 @@ class Settings(BaseSettings):
     @field_validator("cors_allowed_origins", mode="before")
     @classmethod
     def _parse_cors_origins(cls, v):
+        if isinstance(v, str):
+            return [part.strip() for part in v.split(",") if part.strip()]
+        return v
+
+    @field_validator("dev_cors_allowed_origins", mode="before")
+    @classmethod
+    def _parse_dev_cors_origins(cls, v):
         if isinstance(v, str):
             return [part.strip() for part in v.split(",") if part.strip()]
         return v
@@ -174,15 +189,7 @@ class Settings(BaseSettings):
                     warnings.append("CAPTCHA enabled but TURNSTILE_SECRET_KEY missing; verification will fail.")
 
         # Frontend serving folder existence check (warn only)
-        try:
-            if self.serve_frontend:
-                dist_dir = self.frontend_dist_dir
-                if not (isinstance(dist_dir, str) and dist_dir and os.path.exists(dist_dir)):
-                    warnings.append(
-                        f"Frontend serving is enabled but directory '{self.frontend_dist_dir}' not found. Build the frontend (npm run build)."
-                    )
-        except Exception:
-            pass
+        # In API-only mode, we don't require a built frontend
 
         return errors, warnings
 

@@ -1,7 +1,5 @@
 from fastapi import FastAPI, Request, Depends
 from fastapi import HTTPException as FastAPIHTTPException
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
@@ -166,12 +164,11 @@ async def http_exception_handler(request: Request, exc: FastAPIHTTPException):
         content=ErrorEnvelope(success=False, error=ApiError(code=exc.status_code, message=message), request_id=req_id).model_dump(),
     )
 
-# CORS middleware
+# CORS middleware (API-only): explicit origins
 if settings.environment == "production":
     origins = settings.cors_allowed_origins
-    # If not set, keep it empty (no wildcard). We can warn on startup.
 else:
-    origins = ["*"]
+    origins = settings.dev_cors_allowed_origins or ["http://127.0.0.1:5173"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -206,13 +203,7 @@ async def security_headers(request: Request, call_next):
     response.headers.setdefault("Content-Security-Policy", "; ".join(csp_parts))
     return response
 
-# Static files and (optional) serving of built frontend
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
-
-# Optionally serve built frontend (single-origin deployment)
-if settings.serve_frontend and os.path.exists(settings.frontend_dist_dir):
-    app.mount("/assets", StaticFiles(directory=os.path.join(settings.frontend_dist_dir, "assets")), name="assets")
+# API-only mode: no template/static serving
 
 # Include API routers
 app.include_router(auth.router)
@@ -237,44 +228,12 @@ async def log_requests(request: Request, call_next):
     logger.info(f"{method} {path} from {client} -> {response.status_code} ({duration:.1f} ms)")
     return response
 
-# Root endpoint (fallbacks)
-@app.get("/", response_class=HTMLResponse)
-async def root(request: Request):
-    # Prefer serving built SPA if available
-    if settings.serve_frontend:
-        index_path = os.path.join(settings.frontend_dist_dir, "index.html")
-        if os.path.exists(index_path):
-            with open(index_path, "r", encoding="utf-8") as f:
-                return HTMLResponse(f.read())
-    # Fallback to template if SPA not built
-    return templates.TemplateResponse("index.html", {"request": request})
+# Root endpoint (API-only)
+@app.get("/")
+async def root():
+    return {"app": settings.app_name, "version": "1.0.0", "message": "API is running"}
 
-from starlette.requests import Request as StarletteRequest
-from starlette.exceptions import HTTPException as StarletteHTTPException
-
-@app.exception_handler(404)
-async def spa_404_handler(request: StarletteRequest, exc: StarletteHTTPException):
-    """Serve SPA index.html only for unknown non-API routes requesting HTML.
-    This avoids interfering with API routes and tests that expect JSON/404.
-    """
-    try:
-        path = request.url.path.lstrip('/')
-        accept = request.headers.get('accept', '')
-        is_html = 'text/html' in accept
-        # Exclude known API/static/doc paths
-        excluded_prefixes = ("api/", "static/", "assets/", "docs", "redoc", "openapi.json", "health", "emails", "google", "admin")
-        if settings.serve_frontend and is_html and not any(path.startswith(p) for p in excluded_prefixes):
-            index_path = os.path.join(settings.frontend_dist_dir, "index.html")
-            if os.path.exists(index_path):
-                with open(index_path, "r", encoding="utf-8") as f:
-                    return HTMLResponse(f.read())
-    except Exception:
-        pass
-    # Default: propagate original 404 in JSON envelope format
-    return JSONResponse(
-        status_code=404,
-        content=ErrorEnvelope(success=False, error=ApiError(code=404, message="Not found")).model_dump(),
-    )
+# No SPA fallback in API-only mode; default FastAPI 404 applies
 
 # Health check
 @app.get("/health", summary="Health check", description="Returns service health, DB, OpenAI, and Redis status.", response_model=HealthStatus)

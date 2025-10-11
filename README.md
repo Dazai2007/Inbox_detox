@@ -181,6 +181,39 @@ Axios base URL:
   - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
   - `GOOGLE_REDIRECT_URI=http://127.0.0.1:8000/google/oauth2/callback`
 
+## Migrating to API-only backend + separate frontend
+
+Target architecture:
+
+- Backend: FastAPI returns JSON only (no templates). OAuth, auth, and business routes under `/api/...` and `/google/...`.
+- Frontend: React/Next.js (Tailwind) consumes the API; can be deployed independently (e.g., Vercel).
+
+Steps:
+
+1) Backend API-only mode
+   - Static/templates serving removed from `app/main.py`.
+   - Root `/` returns a simple JSON greeting.
+   - CORS uses explicit origins. In dev, `dev_cors_allowed_origins` (see `app/core/config.py`) allows `5173` and `3000` ports.
+
+2) Frontend as separate app
+   - Use Vite React (present in this repo) or Next.js in another repo.
+   - Configure `VITE_API_URL` (or Next `NEXT_PUBLIC_API_URL`) to point to the API.
+   - In dev, use Vite proxy (configured) or Next.js rewrites to `http://127.0.0.1:8000`.
+
+3) Auth flow
+   - POST `/api/auth/login` → store `access_token` (localStorage or cookie).
+   - Send `Authorization: Bearer <token>` for authenticated calls.
+   - Refresh via `/api/auth/refresh-token` (cookie or body).
+
+4) CORS
+   - Dev: uses `dev_cors_allowed_origins` list.
+   - Prod: set `CORS_ALLOWED_ORIGINS=https://app.example.com`.
+
+5) Deployment
+   - Backend: Render/Railway/Fly.io; DB: Supabase/Postgres.
+   - Frontend: Vercel/Netlify. Point DNS (Porkbun/Namecheap) to frontend; configure API URL.
+
+
 
 ## Migrations (Alembic)
 
