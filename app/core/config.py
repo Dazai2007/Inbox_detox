@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     stripe_webhook_secret: Optional[str] = None
     
     # App Settings
-    app_name: str = "Inbox Detox"
+    app_name: str = "Nexivo"
     environment: str = "development"
     debug: bool = True
     # Comma-separated in .env: ALLOWED_HOSTS=localhost,127.0.0.1,app.example.com

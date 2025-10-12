@@ -1,6 +1,6 @@
-# Inbox Detox — Next.js Frontend
+# Nexivo — Next.js Frontend
 
-This is the Next.js (App Router) client for the Inbox Detox API.
+This is the Next.js (App Router) client for the Nexivo API.
 
 ## Environment
 
@@ -63,3 +63,30 @@ After deploy, verify:
 - `/login` works and login stores JWT in localStorage.
 - `/dashboard` auto-redirects unauthenticated users to `/login`.
 - Gmail "Connect" button redirects to Google and returns to `/api/gmail/callback` on your API domain.
+
+## Staging without a custom domain
+
+You can deploy without buying a domain yet.
+
+Option A — Host backend on a free HTTPS subdomain, host frontend on Vercel:
+
+- Backend: Render/Railway/Fly.io → will give you an HTTPS URL like `https://inbox-detox.onrender.com`.
+- Set backend env:
+  - `ENVIRONMENT=production`
+  - `CORS_ALLOWED_ORIGINS=https://<your-vercel-app>.vercel.app`
+  - `GOOGLE_REDIRECT_URI=https://inbox-detox.onrender.com/api/gmail/callback`
+- Frontend (Vercel env):
+  - `NEXT_PUBLIC_API_URL=https://inbox-detox.onrender.com`
+- Google Cloud Console:
+  - Authorized redirect URIs: `https://inbox-detox.onrender.com/api/gmail/callback`
+
+Option B — Keep backend local, expose with ngrok (temporary HTTPS):
+
+- Start backend locally, then run `ngrok http 8000` → get an URL like `https://abcd1234.ngrok.io`.
+- Update backend env (temporarily):
+  - `GOOGLE_REDIRECT_URI=https://abcd1234.ngrok.io/api/gmail/callback`
+  - Allow CORS for your Vercel app domain: `CORS_ALLOWED_ORIGINS=https://<your-vercel-app>.vercel.app`
+- Frontend (Vercel env): `NEXT_PUBLIC_API_URL=https://abcd1234.ngrok.io`
+- Google Cloud Console redirect URI: `https://abcd1234.ngrok.io/api/gmail/callback`
+
+When you later purchase domains, just replace these envs with your final API and app domains.
