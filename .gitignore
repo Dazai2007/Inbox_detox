@@ -85,6 +85,10 @@ wheels/
 .installed.cfg
 *.egg
 
+# Ensure Next.js app lib/ is tracked (override generic Python "lib/" ignore)
+!frontend-next/lib/
+!frontend-next/lib/**
+
 # Environment
 .env
 .env.*
