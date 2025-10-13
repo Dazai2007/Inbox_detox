@@ -1,8 +1,7 @@
 import axios from 'axios'
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
-
-export const api = axios.create({ baseURL: API_URL })
+// Use relative baseURL so Next.js rewrites can proxy to backend and avoid CORS
+export const api = axios.create({ baseURL: '/' })
 
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {

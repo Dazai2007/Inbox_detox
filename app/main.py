@@ -304,6 +304,17 @@ async def api_info():
         ]
     }
 
+# Diagnostics: expose current CORS and environment settings (safe)
+@app.get("/diag/cors")
+async def diag_cors():
+    return {
+        "environment": settings.environment,
+        "allowed_origins": (settings.cors_allowed_origins if settings.environment == "production" else settings.dev_cors_allowed_origins),
+        "allow_credentials": True,
+        "allow_methods": "*",
+        "allow_headers": "*",
+    }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
