@@ -1,4 +1,5 @@
 import os
+import json
 from typing import Optional
 from pydantic_settings import BaseSettings
 from pydantic import field_validator
@@ -106,21 +107,49 @@ class Settings(BaseSettings):
     @classmethod
     def _parse_allowed_hosts(cls, v):
         if isinstance(v, str):
-            return [part.strip() for part in v.split(",") if part.strip()]
+            s = v.strip()
+            # Try JSON array first, fallback to comma-separated
+            if s.startswith("[") and s.endswith("]"):
+                try:
+                    parsed = json.loads(s)
+                    if isinstance(parsed, list):
+                        return [str(item).strip().strip('"').strip("'") for item in parsed if str(item).strip()]
+                except Exception:
+                    pass
+            # Fallback: comma-separated string
+            return [part.strip().strip('"').strip("'") for part in s.split(",") if part.strip()]
         return v
 
     @field_validator("cors_allowed_origins", mode="before")
     @classmethod
     def _parse_cors_origins(cls, v):
         if isinstance(v, str):
-            return [part.strip() for part in v.split(",") if part.strip()]
+            s = v.strip()
+            # Accept JSON array value as well
+            if s.startswith("[") and s.endswith("]"):
+                try:
+                    parsed = json.loads(s)
+                    if isinstance(parsed, list):
+                        return [str(item).strip().strip('"').strip("'") for item in parsed if str(item).strip()]
+                except Exception:
+                    pass
+            # Fallback to comma-separated
+            return [part.strip().strip('"').strip("'") for part in s.split(",") if part.strip()]
         return v
 
     @field_validator("dev_cors_allowed_origins", mode="before")
     @classmethod
     def _parse_dev_cors_origins(cls, v):
         if isinstance(v, str):
-            return [part.strip() for part in v.split(",") if part.strip()]
+            s = v.strip()
+            if s.startswith("[") and s.endswith("]"):
+                try:
+                    parsed = json.loads(s)
+                    if isinstance(parsed, list):
+                        return [str(item).strip().strip('"').strip("'") for item in parsed if str(item).strip()]
+                except Exception:
+                    pass
+            return [part.strip().strip('"').strip("'") for part in s.split(",") if part.strip()]
         return v
 
     # Helper methods for runtime validation and normalization
