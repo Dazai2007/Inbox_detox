@@ -21,7 +21,7 @@ def test_api_info():
     response = client.get("/api/info")
     assert response.status_code == 200
     data = response.json()
-    assert data["app_name"] == "Inbox Detox"
+    assert data["app_name"] == "Nexivo"
 
 def test_demo_analyze():
     """Test the demo email analysis endpoint."""

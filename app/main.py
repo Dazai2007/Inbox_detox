@@ -13,6 +13,7 @@ import uuid
 import traceback
 
 from app.core.config import settings
+from sqlalchemy import text
 from app.core.logging_config import setup_logging
 import os
 import subprocess
@@ -248,7 +249,7 @@ async def health_check(db: Session = Depends(get_db)):
 
     # DB connection check
     try:
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         result["database"] = "connected"
     except Exception as e:
         result["database"] = f"error: {type(e).__name__}: {e}"
