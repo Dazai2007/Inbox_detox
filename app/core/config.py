@@ -32,8 +32,8 @@ class Settings(BaseSettings):
     debug: bool = True
     # Comma-separated in .env: ALLOWED_HOSTS=localhost,127.0.0.1,app.example.com
     allowed_hosts: list[str] = ["localhost", "127.0.0.1"]
-    # CORS allowed origins (comma-separated). In production, must not be empty.
-    cors_allowed_origins: list[str] = []
+    # CORS allowed origins. Accepts list[str] or CSV string via env to avoid early parse errors.
+    cors_allowed_origins: list[str] | str = []
     
     # Rate Limiting
     rate_limit_per_minute: int = 10
