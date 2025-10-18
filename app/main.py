@@ -10,13 +10,10 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from fastapi.responses import JSONResponse
 import uuid
-import traceback
 
 from app.core.config import settings
 from sqlalchemy import text
 from app.core.logging_config import setup_logging
-import os
-import subprocess
 from app.core.limits import limiter
 from app.schemas.api_responses import ErrorEnvelope, ApiError, HealthStatus
 from app.database.database import engine, get_db
@@ -90,29 +87,6 @@ async def _init_db_if_needed():
     # Only auto-create in SQLite/dev to avoid bypassing migrations in Postgres
     if _is_sqlite(settings.database_url):
         models.Base.metadata.create_all(bind=engine)
-
-    # Optional: auto-run Alembic migrations if explicitly enabled
-    if os.getenv("AUTO_MIGRATE_ON_STARTUP", "false").lower() in ("1", "true", "yes"):
-        try:
-            # Prefer Alembic's Python API over shelling out
-            from alembic import command
-            from alembic.config import Config
-
-            # Resolve alembic.ini relative to project root
-            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-            alembic_ini = os.path.join(project_root, "alembic.ini")
-            cfg = Config(alembic_ini if os.path.exists(alembic_ini) else "alembic.ini")
-            # Ensure Alembic uses our runtime DATABASE_URL
-            cfg.set_main_option("sqlalchemy.url", settings.database_url)
-
-            command.upgrade(cfg, "head")
-            print("[startup] Alembic migrations applied (upgrade head)")
-        except Exception as e:
-            if settings.environment == "production":
-                # Fail fast in production if migrations cannot be applied
-                raise RuntimeError(f"Failed to apply Alembic migrations: {e}")
-            else:
-                print(f"[startup] Warning: failed to apply Alembic migrations: {e}")
 
     # Warn if in production without explicit CORS allowed origins
     if settings.environment == "production" and not settings.cors_allowed_origins:
