@@ -92,14 +92,22 @@ async def _init_db_if_needed():
         models.Base.metadata.create_all(bind=engine)
 
     # Optional: auto-run Alembic migrations if explicitly enabled
-    if os.getenv("AUTO_MIGRATE_ON_STARTUP", "false").lower() in ("1", "true", "yes"): 
+    if os.getenv("AUTO_MIGRATE_ON_STARTUP", "false").lower() in ("1", "true", "yes"):
         try:
-            # Use python -m alembic upgrade head so it works in venv
-            subprocess.check_call([
-                os.getenv("PYTHON_EXECUTABLE", "python"), "-m", "alembic", "upgrade", "head"
-            ])
+            # Prefer Alembic's Python API over shelling out
+            from alembic import command
+            from alembic.config import Config
+
+            # Resolve alembic.ini relative to project root
+            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+            alembic_ini = os.path.join(project_root, "alembic.ini")
+            cfg = Config(alembic_ini if os.path.exists(alembic_ini) else "alembic.ini")
+            # Ensure Alembic uses our runtime DATABASE_URL
+            cfg.set_main_option("sqlalchemy.url", settings.database_url)
+
+            command.upgrade(cfg, "head")
             print("[startup] Alembic migrations applied (upgrade head)")
-        except subprocess.CalledProcessError as e:
+        except Exception as e:
             if settings.environment == "production":
                 # Fail fast in production if migrations cannot be applied
                 raise RuntimeError(f"Failed to apply Alembic migrations: {e}")
