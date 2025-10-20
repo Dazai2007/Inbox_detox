@@ -1,6 +1,7 @@
 import os
 from logging.config import fileConfig
 import logging
+import sys
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
@@ -32,6 +33,15 @@ if config.config_file_name is not None:
         logger.info(f"[diag] ini sqlalchemy.url: {masked}")
     except Exception:
         logger.info("[diag] Could not log ini diagnostics")
+
+# Ensure project root is on sys.path so 'app' package can be imported when Alembic runs
+try:
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+    logger.info(f"[diag] sys.path[0]: {sys.path[0]}")
+except Exception:
+    pass
 
 # Add your model's MetaData object here
 # for 'autogenerate' support
