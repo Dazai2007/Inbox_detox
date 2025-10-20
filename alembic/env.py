@@ -1,16 +1,37 @@
 import os
 from logging.config import fileConfig
+import logging
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+logger = logging.getLogger("alembic.env")
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+    # Diagnostics: which ini file and initial URL
+    try:
+        ini_path = os.path.abspath(config.config_file_name)
+        ini_url = config.get_main_option("sqlalchemy.url", default="<unset>")
+        logger.info(f"[diag] Loaded alembic.ini: {ini_path}")
+        # Mask credentials in URL for logging
+        masked = ini_url
+        if isinstance(masked, str) and "://" in masked:
+            try:
+                # redact user:pass@
+                prefix, rest = masked.split("://", 1)
+                if "@" in rest and ":" in rest.split("@", 1)[0]:
+                    auth, host = rest.split("@", 1)
+                    masked = f"{prefix}://***:***@{host}"
+            except Exception:
+                pass
+        logger.info(f"[diag] ini sqlalchemy.url: {masked}")
+    except Exception:
+        logger.info("[diag] Could not log ini diagnostics")
 
 # Add your model's MetaData object here
 # for 'autogenerate' support
@@ -24,6 +45,10 @@ target_metadata = Base.metadata
 DB_URL = os.getenv("DATABASE_URL") or os.getenv("DB_URL")
 if DB_URL:
     config.set_main_option("sqlalchemy.url", DB_URL)
+    try:
+        logger.info("[diag] sqlalchemy.url overridden from environment (DATABASE_URL/DB_URL)")
+    except Exception:
+        pass
 
 
 def run_migrations_offline():
