@@ -120,6 +120,20 @@ class Settings(BaseSettings):
             return [part.strip().strip('"').strip("'") for part in s.split(",") if part.strip()]
         return v
 
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def _normalize_db_url(cls, v):
+        if isinstance(v, str):
+            url = v.strip()
+            try:
+                # If using Render Postgres and sslmode is not set, require SSL
+                if "postgresql" in url and "render.com" in url and "sslmode=" not in url:
+                    url = url + ("&sslmode=require" if "?" in url else "?sslmode=require")
+            except Exception:
+                pass
+            return url
+        return v
+
     @field_validator("cors_allowed_origins", mode="before")
     @classmethod
     def _parse_cors_origins(cls, v):

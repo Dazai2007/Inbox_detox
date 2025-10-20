@@ -54,7 +54,14 @@ target_metadata = Base.metadata
 # Override DB URL from env if provided
 DB_URL = os.getenv("DATABASE_URL") or os.getenv("DB_URL")
 if DB_URL:
-    config.set_main_option("sqlalchemy.url", DB_URL)
+    # Normalize URL: strip whitespace and add sslmode=require for Render Postgres if missing
+    url = DB_URL.strip()
+    try:
+        if "postgresql" in url and "render.com" in url and "sslmode=" not in url:
+            url = url + ("&sslmode=require" if "?" in url else "?sslmode=require")
+    except Exception:
+        pass
+    config.set_main_option("sqlalchemy.url", url)
     try:
         logger.info("[diag] sqlalchemy.url overridden from environment (DATABASE_URL/DB_URL)")
     except Exception:
