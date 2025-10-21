@@ -28,8 +28,8 @@ def has_column(table: str, column: str) -> bool:
 def upgrade() -> None:
     # Add is_admin boolean if missing
     if not has_column('users', 'is_admin'):
-    op.add_column('users', sa.Column('is_admin', sa.Boolean(), nullable=False, server_default=sa.false()))
-    op.execute(text("UPDATE users SET is_admin = FALSE WHERE is_admin IS NULL"))
+        op.add_column('users', sa.Column('is_admin', sa.Boolean(), nullable=False, server_default=sa.false()))
+        op.execute(text("UPDATE users SET is_admin = FALSE WHERE is_admin IS NULL"))
         # Drop default on supported dialects (SQLite lacks ALTER COLUMN DROP DEFAULT)
         bind = op.get_bind()
         if bind.dialect.name != 'sqlite':
@@ -37,8 +37,8 @@ def upgrade() -> None:
 
     # Add timezone column if missing (default 'UTC')
     if not has_column('users', 'timezone'):
-    op.add_column('users', sa.Column('timezone', sa.String(length=64), nullable=False, server_default='UTC'))
-    op.execute(text("UPDATE users SET timezone = 'UTC' WHERE timezone IS NULL"))
+        op.add_column('users', sa.Column('timezone', sa.String(length=64), nullable=False, server_default='UTC'))
+        op.execute(text("UPDATE users SET timezone = 'UTC' WHERE timezone IS NULL"))
         # Drop default on supported dialects (SQLite lacks ALTER COLUMN DROP DEFAULT)
         bind = op.get_bind()
         if bind.dialect.name != 'sqlite':
