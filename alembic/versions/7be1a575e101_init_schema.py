@@ -19,6 +19,19 @@ depends_on = None
 def upgrade() -> None:
     bind = op.get_bind()
     inspector = sa.inspect(bind)
+    tables = inspector.get_table_names()
+
+    # Ensure 'users' table exists on fresh databases
+    if 'users' not in tables:
+        op.create_table(
+            'users',
+            sa.Column('id', sa.Integer(), primary_key=True, index=True),
+            sa.Column('email', sa.String(length=255), nullable=False, unique=True, index=True),
+            # Legacy password field; canonical password_hash will be added below if missing
+            sa.Column('hashed_password', sa.String(length=255), nullable=True),
+            sa.Column('is_active', sa.Boolean(), nullable=False, server_default=sa.text('1')),
+            sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        )
 
     # subscriptions table adjustments
     if 'subscriptions' in inspector.get_table_names():
