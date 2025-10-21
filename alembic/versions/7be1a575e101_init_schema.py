@@ -29,7 +29,7 @@ def upgrade() -> None:
             sa.Column('email', sa.String(length=255), nullable=False, unique=True, index=True),
             # Legacy password field; canonical password_hash will be added below if missing
             sa.Column('hashed_password', sa.String(length=255), nullable=True),
-            sa.Column('is_active', sa.Boolean(), nullable=False, server_default=sa.text('1')),
+            sa.Column('is_active', sa.Boolean(), nullable=False, server_default=sa.text('true')),
             sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
         )
 
@@ -51,7 +51,7 @@ def upgrade() -> None:
         if 'password_hash' not in user_cols:
             op.add_column('users', sa.Column('password_hash', sa.String(length=255), nullable=True))
         if 'is_verified' not in user_cols:
-            op.add_column('users', sa.Column('is_verified', sa.Boolean(), nullable=False, server_default=sa.text('0')))
+            op.add_column('users', sa.Column('is_verified', sa.Boolean(), nullable=False, server_default=sa.text('false')))
             # Drop server_default after backfilling existing rows as needed
             with op.batch_alter_table('users', schema=None) as batch_op:
                 batch_op.alter_column('is_verified', server_default=None)
@@ -78,7 +78,7 @@ def upgrade() -> None:
             with op.batch_alter_table('users', schema=None) as batch_op:
                 batch_op.alter_column('subscription_status', server_default=None)
         if 'gmail_connected' not in user_cols:
-            op.add_column('users', sa.Column('gmail_connected', sa.Boolean(), nullable=False, server_default=sa.text('0')))
+            op.add_column('users', sa.Column('gmail_connected', sa.Boolean(), nullable=False, server_default=sa.text('false')))
             with op.batch_alter_table('users', schema=None) as batch_op:
                 batch_op.alter_column('gmail_connected', server_default=None)
         if 'gmail_refresh_token' not in user_cols:
