@@ -10,6 +10,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy import text
 
 # revision identifiers, used by Alembic.
 revision: str = 'a1b2c3d4e5f7'
@@ -19,9 +20,9 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 BOOLEAN_COLUMNS = (
-    ('is_active', sa.text('true')),
-    ('is_verified', sa.text('false')),
-    ('gmail_connected', sa.text('false')),
+    ('is_active', 'TRUE'),
+    ('is_verified', 'FALSE'),
+    ('gmail_connected', 'FALSE'),
 )
 
 
@@ -35,13 +36,16 @@ def upgrade() -> None:
     if not _users_table_exists(bind):
         return
 
-    with op.batch_alter_table('users', schema=None) as batch_op:
-        for column_name, default_expr in BOOLEAN_COLUMNS:
-            batch_op.alter_column(
-                column_name,
-                existing_type=sa.Boolean(),
-                server_default=default_expr,
+    if bind.dialect.name != 'postgresql':
+        # Other dialects either lack ALTER DEFAULT support or do not need this fix
+        return
+
+    for column_name, default_literal in BOOLEAN_COLUMNS:
+        op.execute(
+            text(
+                f"ALTER TABLE users ALTER COLUMN {column_name} SET DEFAULT {default_literal}"
             )
+        )
 
 
 def downgrade() -> None:
@@ -49,10 +53,10 @@ def downgrade() -> None:
     if not _users_table_exists(bind):
         return
 
-    with op.batch_alter_table('users', schema=None) as batch_op:
-        for column_name, _ in BOOLEAN_COLUMNS:
-            batch_op.alter_column(
-                column_name,
-                existing_type=sa.Boolean(),
-                server_default=None,
-            )
+    if bind.dialect.name != 'postgresql':
+        return
+
+    for column_name, _ in BOOLEAN_COLUMNS:
+        op.execute(
+            text(f"ALTER TABLE users ALTER COLUMN {column_name} DROP DEFAULT")
+        )
