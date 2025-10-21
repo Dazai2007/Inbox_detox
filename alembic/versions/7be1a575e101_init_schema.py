@@ -56,7 +56,25 @@ def upgrade() -> None:
             with op.batch_alter_table('users', schema=None) as batch_op:
                 batch_op.alter_column('is_verified', server_default=None)
         if 'subscription_status' not in user_cols:
-            op.add_column('users', sa.Column('subscription_status', sa.Enum('FREE', 'PRO', 'BUSINESS', name='subscriptionstatus'), nullable=False, server_default='FREE'))
+            # Ensure enum type exists on Postgres with lowercase labels matching models
+            bind = op.get_bind()
+            if bind.dialect.name == 'postgresql':
+                op.execute(
+                    """
+                    DO $$
+                    BEGIN
+                        IF NOT EXISTS (
+                            SELECT 1 FROM pg_type t WHERE t.typname = 'subscriptionstatus'
+                        ) THEN
+                            CREATE TYPE subscriptionstatus AS ENUM ('free','pro','business');
+                        END IF;
+                    END
+                    $$;
+                    """
+                )
+            # Add column using existing enum (or string on other dialects)
+            enum_type = sa.Enum('free', 'pro', 'business', name='subscriptionstatus', create_type=False)
+            op.add_column('users', sa.Column('subscription_status', enum_type, nullable=False, server_default='free'))
             with op.batch_alter_table('users', schema=None) as batch_op:
                 batch_op.alter_column('subscription_status', server_default=None)
         if 'gmail_connected' not in user_cols:
