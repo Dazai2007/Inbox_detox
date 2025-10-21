@@ -1,6 +1,6 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
-# SQLAlchemy 2.0.x (sync engine)
+# SQLAlchemy 2.0.23 has issues on Python 3.13; bump to a 2.0.x version with 3.13 support
 sqlalchemy==2.0.36
 pydantic==2.9.2
 # Required for EmailStr and email validation in Pydantic
