@@ -40,7 +40,12 @@ def upgrade() -> None:
         # Other dialects either lack ALTER DEFAULT support or do not need this fix
         return
 
+    inspector = sa.inspect(bind)
+    user_columns = {col['name'] for col in inspector.get_columns('users')}
+
     for column_name, default_literal in BOOLEAN_COLUMNS:
+        if column_name not in user_columns:
+            continue
         op.execute(
             text(
                 f"ALTER TABLE users ALTER COLUMN {column_name} SET DEFAULT {default_literal}"
@@ -56,7 +61,12 @@ def downgrade() -> None:
     if bind.dialect.name != 'postgresql':
         return
 
+    inspector = sa.inspect(bind)
+    user_columns = {col['name'] for col in inspector.get_columns('users')}
+
     for column_name, _ in BOOLEAN_COLUMNS:
+        if column_name not in user_columns:
+            continue
         op.execute(
             text(f"ALTER TABLE users ALTER COLUMN {column_name} DROP DEFAULT")
         )
