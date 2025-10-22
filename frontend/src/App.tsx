@@ -1,47 +1,23 @@
-import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom'
-import logo from './assets/logo-black.svg'
-import { AuthProvider, useAuth } from './context/AuthContext'
-import Login from './pages/Login'
-import Register from './pages/Register'
-import Dashboard from './pages/Dashboard'
-import ForgotPassword from './pages/ForgotPassword'
-import ResetPassword from './pages/ResetPassword'
+import Header from './components/Header'
+import Hero from './components/Hero'
+import Features from './components/Features'
+import DashboardShowcase from './components/Dashboard'
+import Pricing from './components/Pricing'
+import Footer from './components/Footer'
 
-function PrivateRoute({ children }: { children: JSX.Element }) {
-  const { token } = useAuth()
-  return token ? children : <Navigate to="/login" replace />
-}
-
-export default function App(){
+export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <div className="bg-noise" data-theme="gradient">
-        <nav className="header">
-          <div className="container flex items-center gap-4 py-1 text-white">
-            <Link to="/" className="brand">
-              <span className="logo logo-rb">Nexa</span>
-            </Link>
-            <div className="nav">
-              <Link to="/dashboard">Dashboard</Link>
-            </div>
-          </div>
-        </nav>
-        <Routes>
-          <Route path="/" element={<HomeRedirect />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-        </Routes>
-        </div>
-      </BrowserRouter>
-    </AuthProvider>
+    <div className="min-h-screen bg-gradient-to-br from-[var(--nexivo-dark)] via-slate-900 to-black text-[var(--nexivo-text)]">
+      <div className="bg-noise min-h-screen" data-theme="gradient">
+        <Header />
+        <main className="container mx-auto flex max-w-6xl flex-col gap-32 px-4 py-16">
+          <Hero />
+          <Features />
+          <DashboardShowcase />
+          <Pricing />
+        </main>
+        <Footer />
+      </div>
+    </div>
   )
-}
-
-function HomeRedirect() {
-  const { token } = useAuth()
-  return token ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
 }

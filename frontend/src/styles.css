@@ -4,12 +4,24 @@
 
 /* Theme variables */
 :root {
-	/* Light (minimal) */
+	/* Core brand colors */
+	--nexivo-primary: #2563eb; /* Electric blue – trust */
+	--nexivo-secondary: #7c3aed; /* Purple – creativity */
+	--nexivo-accent: #06b6d4; /* Teal – innovation */
+	--nexivo-success: #10b981; /* Green – success */
+
+	/* Neutral colors */
+	--nexivo-dark: #0f172a; /* Dark background */
+	--nexivo-surface: #1e293b; /* Surface color */
+	--nexivo-text: #f8fafc; /* Primary text */
+	--nexivo-text-secondary: #cbd5e1; /* Secondary text */
+
+	/* Legacy tokens derived from brand palette */
 	--bg: #F9FAFB;
 	--text: #0F172A;
 	--muted: #64748B;
-	--accent: #3B82F6; /* blue */
-	--accent2: #9333EA; /* purple */
+	--accent: var(--nexivo-primary);
+	--accent2: var(--nexivo-secondary);
 	--card-rgb: 255,255,255; /* #FFFFFF */
 	--border: #E5E7EB;
 	--surface-alpha: 0.95;
@@ -33,11 +45,11 @@
 	--bg: #0F172A;
 	--text: #F8FAFC;
 	--muted: #94A3B8;
-	--accent: #3B82F6; /* mavi */
-	--accent2: #6366F1; /* mor/indigo */
+	--accent: #3B82F6; /* blue accent */
+	--accent2: #6366F1; /* purple-indigo accent */
 	--card-rgb: 30,41,59;
 	--border: rgba(255,255,255,0.08);
-	--surface-alpha: 0.68; /* daha şeffaf, daha az koyu kutular */
+	--surface-alpha: 0.68; /* slightly more transparent for softer cards */
 	--gradient: linear-gradient(135deg, #0F172A, #1E293B, #312E81);
 }
 
