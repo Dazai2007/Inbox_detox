@@ -24,6 +24,14 @@ def upgrade() -> None:
         # Only needed for Postgres enum semantics
         return
 
+    inspector = sa.inspect(bind)
+    if 'users' not in inspector.get_table_names():
+        return
+    user_cols = {col['name'] for col in inspector.get_columns('users')}
+    if 'subscription_status' not in user_cols:
+        # Nothing to migrate if the column never existed
+        return
+
     # 1) Create new enum type with lowercase labels if missing
     op.execute(
         """
@@ -57,6 +65,13 @@ def upgrade() -> None:
 def downgrade() -> None:
     bind = op.get_bind()
     if bind.dialect.name != 'postgresql':
+        return
+
+    inspector = sa.inspect(bind)
+    if 'users' not in inspector.get_table_names():
+        return
+    user_cols = {col['name'] for col in inspector.get_columns('users')}
+    if 'subscription_status' not in user_cols:
         return
 
     # Reverse: create uppercase enum, cast up, drop lowercase, rename back
