@@ -1,33 +1,69 @@
 export default function Hero() {
   return (
-    <section id="get-started" className="relative overflow-hidden rounded-3xl border border-white/10 bg-[var(--nexivo-surface)]/40 px-8 py-20 text-center shadow-2xl shadow-black/40">
-      <div className="mx-auto max-w-3xl space-y-6">
-        <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--nexivo-text-secondary)]">
-          Inbox Detox • AI Ops
-        </span>
-        <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl">
-          Untangle chaotic inboxes with a human-grade AI copilot.
-        </h1>
-        <p className="text-balance text-lg text-[var(--nexivo-text-secondary)]">
-          Nexivo triages, prioritises, and automates your email workflows so you can stay focused on high-impact work. Built for founders, operators, and busy teams.
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-          <a
-            href="#pricing"
-            className="rounded-full bg-[var(--nexivo-primary)] px-6 py-3 text-base font-semibold text-white shadow-lg shadow-[var(--nexivo-primary)]/30 transition hover:-translate-y-0.5 hover:bg-[var(--nexivo-secondary)]"
-          >
-            Start free trial
-          </a>
-          <a
-            href="#dashboard"
-            className="rounded-full border border-white/30 px-6 py-3 text-base font-semibold text-white/90 transition hover:-translate-y-0.5 hover:border-white hover:text-white"
-          >
-            See live dashboard
-          </a>
+    <section
+      id="get-started"
+      className="relative overflow-hidden px-6 pb-20 pt-32"
+    >
+      <div className="pointer-events-none absolute left-1/4 top-1/4 h-72 w-72 rounded-full bg-[var(--nexivo-primary)]/20 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-[var(--nexivo-secondary)]/20 blur-3xl" />
+
+      <div className="container relative z-10 mx-auto text-center">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-8 inline-flex items-center rounded-full border border-slate-700/50 bg-slate-800/50 px-4 py-2">
+            <span className="mr-2 h-2 w-2 animate-pulse rounded-full bg-[var(--nexivo-accent)]" />
+            <span className="text-sm text-slate-300">Yeni Nesil Email Yönetimi</span>
+          </div>
+
+          <h1 className="mb-6 text-5xl font-bold md:text-7xl">
+            <span className="bg-gradient-to-r from-white via-blue-100 to-cyan-100 bg-clip-text text-transparent">
+              Email Karmaşasına
+            </span>
+            <br />
+            <span className="bg-gradient-to-r from-[var(--nexivo-primary)] via-[var(--nexivo-secondary)] to-[var(--nexivo-accent)] bg-clip-text text-transparent">
+              Son Verin
+            </span>
+          </h1>
+
+          <p className="mx-auto mb-8 max-w-3xl text-xl leading-relaxed text-slate-300 md:text-2xl">
+            <span className="text-cyan-200">Nexivo</span> ile gelen kutunuzu akıllıca yönetin. Yapay zeka destekli sıralama,
+            otomatik kategorilendirme ve
+            <span className="text-emerald-200"> %70 daha verimli</span> email yönetimi.
+          </p>
+
+          <div className="mb-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <button className="transform rounded-xl bg-gradient-to-r from-[var(--nexivo-primary)] to-[var(--nexivo-secondary)] px-8 py-4 text-lg font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/30">
+              🚀 Ücretsiz Deneyin
+            </button>
+            <button className="rounded-xl border border-slate-600 px-8 py-4 text-lg font-semibold text-slate-300 transition-all duration-300 hover:bg-slate-800/50">
+              📞 Demo İste
+            </button>
+          </div>
+
+          <div className="mx-auto grid max-w-2xl grid-cols-2 gap-6 md:grid-cols-4">
+            {[{
+              label: 'Mutlu Kullanıcı',
+              value: '50K+',
+            },
+            {
+              label: 'Başarı Oranı',
+              value: '%99',
+            },
+            {
+              label: 'Kullanıcı Puanı',
+              value: '4.9/5',
+            },
+            {
+              label: 'Destek',
+              value: '24/7',
+            }].map((stat) => (
+              <div key={stat.label} className="text-center">
+                <div className="text-2xl font-bold text-white">{stat.value}</div>
+                <div className="text-sm text-slate-400">{stat.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-      <div className="pointer-events-none absolute -left-40 -top-32 h-72 w-72 rounded-full bg-[var(--nexivo-primary)]/40 blur-3xl" />
-      <div className="pointer-events-none absolute -right-32 bottom-0 h-72 w-72 rounded-full bg-[var(--nexivo-secondary)]/40 blur-3xl" />
     </section>
   )
 }
