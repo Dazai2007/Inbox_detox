@@ -30,9 +30,7 @@ class User(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), unique=True, index=True, nullable=False)
-    # New canonical field matching requested schema
-    password_hash = Column(String(255), nullable=True)
-    # Legacy field kept for backward compatibility (to be migrated/removed later)
+    # Single password storage column used across the codebase
     hashed_password = Column(String(255), nullable=True)
     full_name = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True)

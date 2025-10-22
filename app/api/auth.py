@@ -209,7 +209,7 @@ async def reset_password(body: ResetPasswordRequest, db: Session = Depends(get_d
 
     # Reuse password hashing policy
     hashed = AuthService.get_password_hash(body.new_password)
-    user.password_hash = hashed
+    user.hashed_password = hashed
     prt.used = True
     db.commit()
     return ApiMessage(message="Password has been reset")

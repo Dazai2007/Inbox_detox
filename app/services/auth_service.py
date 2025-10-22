@@ -92,7 +92,7 @@ class AuthService:
         if not user:
             return None
         # Try new field first, fallback to legacy
-        stored_hash = user.password_hash or user.hashed_password
+        stored_hash = user.hashed_password
         if not stored_hash:
             return None
         if not AuthService.verify_password(password, stored_hash):
@@ -116,7 +116,7 @@ class AuthService:
                     tz = "UTC"
         user = User(
             email=email_norm,
-            password_hash=hashed_password,
+            hashed_password=hashed_password,
             full_name=full_name_sanitized,
             timezone=tz,
         )
