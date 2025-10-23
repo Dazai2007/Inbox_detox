@@ -18,104 +18,62 @@
 
 	/* Legacy tokens derived from brand palette */
 	--bg: #F9FAFB;
-	--text: #0F172A;
-	--muted: #64748B;
-	--accent: var(--nexivo-primary);
-	--accent2: var(--nexivo-secondary);
-	--card-rgb: 255,255,255; /* #FFFFFF */
-	--border: #E5E7EB;
-	--surface-alpha: 0.95;
-	--gradient: linear-gradient(135deg, #F9FAFB, #ffffff);
-}
+	@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-[data-theme="dark"] {
-	--bg: #0F172A;
-	--text: #F8FAFC;
-	--muted: #94A3B8;
-	--accent: #3B82F6; /* blue */
-	--accent2: #6366F1; /* indigo */
-	--card-rgb: 30,41,59; /* #1E293B */
-	--border: #334155;
-	--surface-alpha: 0.90;
-	--gradient: linear-gradient(135deg, #0F172A, #1E293B, #312E81);
-}
+	:root {
+		--nexivo-primary: #684fff;
+		--nexivo-secondary: #09c6f9;
+		--nexivo-accent: #f72585;
+		--nexivo-glow: 0 20px 60px rgba(104, 79, 255, 0.45);
+		--nexivo-background: #050914;
+		--nexivo-surface: rgba(255, 255, 255, 0.05);
+		--nexivo-text-primary: rgba(255, 255, 255, 0.92);
+		--nexivo-text-secondary: rgba(255, 255, 255, 0.65);
+		--nexivo-dark: #0f172a;
+		--nexivo-text: #f8fafc;
+	}
 
-[data-theme="gradient"] {
-	/* Gradient dark variant */
-	--bg: #0F172A;
-	--text: #F8FAFC;
-	--muted: #94A3B8;
-	--accent: #3B82F6; /* blue accent */
-	--accent2: #6366F1; /* purple-indigo accent */
-	--card-rgb: 30,41,59;
-	--border: rgba(255,255,255,0.08);
-	--surface-alpha: 0.68; /* slightly more transparent for softer cards */
-	--gradient: linear-gradient(135deg, #0F172A, #1E293B, #312E81);
-}
+	* {
+		margin: 0;
+		padding: 0;
+		box-sizing: border-box;
+		font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	}
 
-/* App background uses current theme gradient */
-body {
-	font-family: Inter, Manrope, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-	background: var(--gradient);
-	color: var(--text);
-	background-attachment: fixed;
-}
+	body {
+		min-height: 100vh;
+		background: #0f172a;
+		color: #f8fafc;
+		overflow-x: hidden;
+	}
 
-/* Soft noise overlay (very low opacity) for depth without eye strain) */
-/* Blurred accent blobs for dramatic mesh look */
-.bg-noise::before {
-	content: "";
-	position: fixed;
-	inset: 0;
-	pointer-events: none;
-	z-index: 0;
-	background:
-		radial-gradient(900px 600px at -10% -10%, rgba(59,130,246,0.28), transparent 60%),
-		radial-gradient(800px 600px at 110% 0%, rgba(99,102,241,0.24), transparent 60%),
-		radial-gradient(700px 600px at 50% 120%, rgba(56,189,248,0.18), transparent 55%);
-	filter: blur(70px) saturate(115%);
-}
+	.gradient-text {
+		background: linear-gradient(135deg, #2563eb, #7c3aed, #06b6d4);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+	}
 
-/* Subtle vignette for extra depth */
-.bg-noise::after {
-	content: "";
-	position: fixed;
-	inset: 0;
-	pointer-events: none;
-	background:
-		radial-gradient(1200px 800px at 50% 20%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.35) 100%),
-		url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity="0.025"/></svg>');
-	background-repeat: no-repeat, repeat;
-	z-index: 0;
-}
+	html {
+		scroll-behavior: smooth;
+	}
 
-/* Elevate white surfaces slightly */
-.card {
-	background-color: rgba(var(--card-rgb), var(--surface-alpha)); /* default */
-	backdrop-filter: saturate(120%) blur(10px);
-	border: 1px solid var(--border);
-	border-radius: 0.75rem; /* 12px rounded-xl */
-	box-shadow: 0 8px 24px rgba(0,0,0,0.16);
-}
+	::-webkit-scrollbar {
+		width: 8px;
+	}
 
-/* Make cards lighter, less blocky on gradient dark */
-[data-theme="gradient"] .card {
-	background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.045));
-	border-color: rgba(255,255,255,0.08);
-}
+	::-webkit-scrollbar-track {
+		background: #0f172a;
+	}
 
-/* Optional gradient border accent for hero cards */
-.card--accent {
-	position: relative;
-	background: linear-gradient(rgba(255,255,255,0.06), rgba(255,255,255,0.045)) padding-box,
-				linear-gradient(135deg, rgba(59,130,246,0.35), rgba(99,102,241,0.35)) border-box;
-	border: 1px solid transparent;
-}
-.card--accent:hover { box-shadow: 0 10px 32px rgba(2, 132, 199, 0.22); transform: translateY(-1px); transition: transform .15s ease, box-shadow .2s ease; }
+	::-webkit-scrollbar-thumb {
+		background: #334155;
+		border-radius: 4px;
+	}
 
-/* Container spacing harmony */
-.container {
-	@apply max-w-6xl mx-auto px-4;
+	::-webkit-scrollbar-thumb:hover {
+		background: #475569;
+	}
 }
 
 	/* Themed button and input helpers */
@@ -209,4 +167,33 @@ body {
 .grid.cards { grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 16px; margin: 24px auto; }
 .card .label { color: var(--text-muted); font-size: 13px; letter-spacing: 0.4px; }
 .card .value { margin-top: 8px; font-size: 22px; font-weight: 700; color: var(--mid-red); }
+
+/* --- Extra App.css additions --- */
+/* Auth layout background gradient */
+.auth-layout {
+	background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+/* Input focus effects */
+input:focus {
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Loading animation */
+@keyframes spin {
+	to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+	animation: spin 1s linear infinite;
+}
+
+/* Gradient border effect */
+.gradient-border {
+	border: double 1px transparent;
+	background-image: linear-gradient(#0f172a, #0f172a),
+										linear-gradient(135deg, #2563eb, #7c3aed, #06b6d4);
+	background-origin: border-box;
+	background-clip: content-box, border-box;
+}
 

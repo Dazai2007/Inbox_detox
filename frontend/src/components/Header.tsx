@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useI18n } from '../context/I18nContext'
 import LanguageSelector from './LanguageSelector'
 
@@ -8,9 +9,8 @@ export default function Header() {
 
   return (
     <header className="fixed z-50 w-full border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-lg">
-      <div className="container mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+  <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4">
+        <div className="flex items-center space-x-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-[var(--nexivo-primary)] to-[var(--nexivo-secondary)]">
               <span className="text-lg font-bold text-white">N</span>
             </div>
@@ -19,63 +19,68 @@ export default function Header() {
             </span>
           </div>
 
-          <div className="hidden items-center gap-6 md:flex">
-            <nav className="flex items-center gap-6 text-sm">
-              <a
-                href="#features"
-                className="font-medium text-slate-300 transition-all duration-300 hover:text-white"
-              >
-                {t('nav.features')}
-              </a>
-              <a
-                href="#dashboard"
-                className="font-medium text-slate-300 transition-all duration-300 hover:text-white"
-              >
-                {t('nav.dashboard')}
-              </a>
-              <a
-                href="#pricing"
-                className="font-medium text-slate-300 transition-all duration-300 hover:text-white"
-              >
-                {t('nav.pricing')}
-              </a>
-            </nav>
-            <LanguageSelector />
-            <button className="rounded-lg bg-gradient-to-r from-[var(--nexivo-primary)] to-[var(--nexivo-secondary)] px-6 py-2 font-semibold text-white transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25">
+        <div className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-8">
+            <a href="#features" className="text-slate-300 hover:text-white transition-all duration-300 font-medium">
+              {t('nav.features')}
+            </a>
+            <a href="#dashboard" className="text-slate-300 hover:text-white transition-all duration-300 font-medium">
+              {t('nav.dashboard')}
+            </a>
+            <a href="#pricing" className="text-slate-300 hover:text-white transition-all duration-300 font-medium">
+              {t('nav.pricing')}
+            </a>
+          </nav>
+          <LanguageSelector />
+          {/* Auth Butonları */}
+          <div className="flex items-center space-x-4">
+            <Link 
+              to="/login" 
+              className="text-slate-300 hover:text-white transition-all duration-300 font-medium"
+            >
+              {t('signIn')}
+            </Link>
+            <Link 
+              to="/register" 
+              className="bg-gradient-to-r from-nexivo-primary to-nexivo-secondary text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300"
+            >
               {t('nav.cta')}
-            </button>
+            </Link>
           </div>
-
-          <button
-            type="button"
-            className="text-2xl text-slate-300 md:hidden"
-            onClick={() => setIsMenuOpen((open) => !open)}
-            aria-label={isMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
-          >
-            ☰
-          </button>
         </div>
 
-        {isMenuOpen && (
-          <div className="mt-4 border-t border-slate-700/50 pt-4 pb-4 md:hidden">
-            <div className="flex flex-col space-y-4">
-              <LanguageSelector className="w-full" />
-              <a href="#features" className="text-slate-300 transition hover:text-white">
-                {t('nav.features')}
-              </a>
-              <a href="#dashboard" className="text-slate-300 transition hover:text-white">
-                {t('nav.dashboard')}
-              </a>
-              <a href="#pricing" className="text-slate-300 transition hover:text-white">
-                {t('nav.pricing')}
-              </a>
-              <button className="rounded-lg bg-gradient-to-r from-[var(--nexivo-primary)] to-[var(--nexivo-secondary)] px-4 py-2 font-semibold text-white">
-                {t('nav.cta')}
-              </button>
-            </div>
-          </div>
-        )}
+        <button
+          type="button"
+          className="text-2xl text-slate-300 md:hidden"
+          onClick={() => setIsMenuOpen((open) => !open)}
+          aria-label={isMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
+        >
+          ☰
+        </button>
       </div>
+
+      {isMenuOpen && (
+  <div className="mx-auto mt-0 w-full max-w-7xl border-t border-slate-700/50 px-6 pb-4 pt-4 md:hidden">
+          <div className="flex flex-col space-y-4">
+            <LanguageSelector className="w-full" />
+            <a href="#features" className="text-slate-300 transition hover:text-white">
+              {t('nav.features')}
+            </a>
+            <a href="#dashboard" className="text-slate-300 transition hover:text-white">
+              {t('nav.dashboard')}
+            </a>
+            <a href="#pricing" className="text-slate-300 transition hover:text-white">
+              {t('nav.pricing')}
+            </a>
+            <Link to="/login" className="text-slate-300 hover:text-white font-medium">
+              {t('signIn')}
+            </Link>
+            <Link to="/register" className="rounded-lg bg-gradient-to-r from-[var(--nexivo-primary)] to-[var(--nexivo-secondary)] px-4 py-2 font-semibold text-white">
+              {t('nav.cta')}
+            </Link>
+          </div>
+        </div>
+      )}
     </header>
   )
 }

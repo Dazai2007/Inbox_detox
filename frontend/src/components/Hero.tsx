@@ -5,12 +5,13 @@ export default function Hero() {
   return (
     <section
       id="get-started"
-      className="relative overflow-hidden px-6 pb-20 pt-32"
+      className="relative overflow-hidden px-6 pb-28 pt-40 md:pt-48"
     >
-      <div className="pointer-events-none absolute left-1/4 top-1/4 h-72 w-72 rounded-full bg-[var(--nexivo-primary)]/20 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-[var(--nexivo-secondary)]/20 blur-3xl" />
+      {/* Symmetric background glows to avoid perceived left bias on ultra-wide screens */}
+      <div className="pointer-events-none absolute left-1/2 top-24 h-80 w-80 -translate-x-1/2 rounded-full bg-[var(--nexivo-primary)]/20 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-24 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-[var(--nexivo-secondary)]/20 blur-3xl" />
 
-      <div className="container relative z-10 mx-auto text-center">
+      <div className="relative z-10 mx-auto grid w-full max-w-7xl place-items-center text-center">
         <div className="mx-auto max-w-4xl">
           <div className="mb-8 inline-flex items-center rounded-full border border-slate-700/50 bg-slate-800/50 px-4 py-2">
             <span className="mr-2 h-2 w-2 animate-pulse rounded-full bg-[var(--nexivo-accent)]" />
@@ -35,7 +36,7 @@ export default function Hero() {
             {t('hero.description.outro')}
           </p>
 
-          <div className="mb-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <div className="mb-16 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <button className="transform rounded-xl bg-gradient-to-r from-[var(--nexivo-primary)] to-[var(--nexivo-secondary)] px-8 py-4 text-lg font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/30">
               {t('hero.cta.primary')}
             </button>
