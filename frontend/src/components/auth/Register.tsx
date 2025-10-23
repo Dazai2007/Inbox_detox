@@ -1,6 +1,7 @@
 import { ChangeEvent, FormEvent, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useI18n } from '../../context/I18nContext'
 
 type FormState = {
   firstName: string
@@ -28,15 +29,10 @@ function getPasswordStrength(password: string) {
   if (/[0-9]/.test(password)) score += 1
   if (/[^A-Za-z0-9]/.test(password)) score += 1
 
-  const strengths = [
-    { text: 'Çok zayıf', color: 'bg-red-500' },
-    { text: 'Zayıf', color: 'bg-orange-500' },
-    { text: 'Orta', color: 'bg-yellow-500' },
-    { text: 'Güçlü', color: 'bg-blue-500' },
-    { text: 'Çok güçlü', color: 'bg-green-500' },
-  ]
-
-  return { score, text: strengths[Math.max(0, Math.min(score - 1, strengths.length - 1))]?.text || '', color: strengths[Math.max(0, Math.min(score - 1, strengths.length - 1))]?.color || '' }
+  // Labels will be injected at render-time via i18n; here only return color and score
+  const colors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500']
+  const idx = Math.max(0, Math.min(score - 1, colors.length - 1))
+  return { score, text: '', color: colors[idx] || '' }
 }
 
 const Register = ({ onRegister }: RegisterProps) => {
@@ -52,6 +48,7 @@ const Register = ({ onRegister }: RegisterProps) => {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
   const { register } = useAuth()
+  const { t } = useI18n()
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
@@ -68,19 +65,19 @@ const Register = ({ onRegister }: RegisterProps) => {
   const validationErrors = useMemo(() => {
     const newErrors: ErrorState = {}
 
-    if (!formData.firstName.trim()) newErrors.firstName = 'Ad alanı gereklidir'
-    if (!formData.lastName.trim()) newErrors.lastName = 'Soyad alanı gereklidir'
+  if (!formData.firstName.trim()) newErrors.firstName = t('register.validation.firstNameRequired')
+  if (!formData.lastName.trim()) newErrors.lastName = t('register.validation.lastNameRequired')
 
-    if (!formData.email) newErrors.email = 'Email adresi gereklidir'
-    else if (!emailPattern.test(formData.email)) newErrors.email = 'Geçerli bir email adresi girin'
+  if (!formData.email) newErrors.email = t('register.validation.emailRequired')
+  else if (!emailPattern.test(formData.email)) newErrors.email = t('register.validation.emailInvalid')
 
-    if (!formData.password) newErrors.password = 'Şifre gereklidir'
-    else if (formData.password.length < 8) newErrors.password = 'Şifre en az 8 karakter olmalıdır'
-    else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) newErrors.password = 'Şifre en az bir büyük harf, bir küçük harf ve bir rakam içermelidir'
+  if (!formData.password) newErrors.password = t('register.validation.passwordRequired')
+  else if (formData.password.length < 8) newErrors.password = t('register.validation.passwordMin')
+  else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) newErrors.password = t('register.validation.passwordComplexity')
 
-    if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Şifreler eşleşmiyor'
+  if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = t('register.validation.passwordMismatch')
 
-    if (!formData.agreeToTerms) newErrors.agreeToTerms = 'Hizmet şartlarını kabul etmelisiniz'
+  if (!formData.agreeToTerms) newErrors.agreeToTerms = t('register.validation.agreeToTerms')
 
     return newErrors
   }, [formData])
@@ -108,7 +105,7 @@ const Register = ({ onRegister }: RegisterProps) => {
       onRegister?.()
       navigate('/login', { replace: true })
     } catch (error: any) {
-      setErrors({ submit: pickErrorMessage(error, 'Kayıt başarısız. Lütfen tekrar deneyin.') })
+      setErrors({ submit: pickErrorMessage(error, t('registerFailed')) })
     } finally {
       setIsLoading(false)
     }
@@ -128,8 +125,8 @@ const Register = ({ onRegister }: RegisterProps) => {
             <span className="text-3xl font-bold text-transparent bg-gradient-to-r from-white to-slate-300 bg-clip-text">Nexivo</span>
           </div>
         </div>
-        <h2 className="mb-2 text-3xl font-bold text-white">Hesap Oluşturun</h2>
-        <p className="text-slate-400">Email yönetiminde devrime katılın</p>
+        <h2 className="mb-2 text-3xl font-bold text-white">{t('register.heading')}</h2>
+        <p className="text-slate-400">{t('register.subtitle')}</p>
       </div>
 
       {/* Register Form */}
@@ -139,7 +136,7 @@ const Register = ({ onRegister }: RegisterProps) => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="firstName" className="mb-2 block text-sm font-medium text-slate-300">
-                Ad
+                {t('register.firstName')}
               </label>
               <input
                 id="firstName"
@@ -150,14 +147,14 @@ const Register = ({ onRegister }: RegisterProps) => {
                 className={`w-full rounded-xl border px-4 py-3 text-white placeholder-slate-500 transition-all focus:outline-none focus:ring-2 focus:border-transparent ${
                   errors.firstName ? 'border-red-500 focus:ring-red-500' : 'border-slate-600 bg-slate-800/50 focus:ring-nexivo-primary'
                 }`}
-                placeholder="Adınız"
+                placeholder={t('register.firstName')}
                 autoComplete="given-name"
               />
               {errors.firstName && <p className="mt-2 text-sm text-red-400">{errors.firstName}</p>}
             </div>
             <div>
               <label htmlFor="lastName" className="mb-2 block text-sm font-medium text-slate-300">
-                Soyad
+                {t('register.lastName')}
               </label>
               <input
                 id="lastName"
@@ -168,7 +165,7 @@ const Register = ({ onRegister }: RegisterProps) => {
                 className={`w-full rounded-xl border px-4 py-3 text-white placeholder-slate-500 transition-all focus:outline-none focus:ring-2 focus:border-transparent ${
                   errors.lastName ? 'border-red-500 focus:ring-red-500' : 'border-slate-600 bg-slate-800/50 focus:ring-nexivo-primary'
                 }`}
-                placeholder="Soyadınız"
+                placeholder={t('register.lastName')}
                 autoComplete="family-name"
               />
               {errors.lastName && <p className="mt-2 text-sm text-red-400">{errors.lastName}</p>}
@@ -178,7 +175,7 @@ const Register = ({ onRegister }: RegisterProps) => {
           {/* Email Input */}
           <div>
             <label htmlFor="email" className="mb-2 block text-sm font-medium text-slate-300">
-              Email Adresi
+              {t('email')}
             </label>
             <div className="relative">
               <input
@@ -190,7 +187,7 @@ const Register = ({ onRegister }: RegisterProps) => {
                 className={`w-full rounded-xl border px-4 py-3 text-white placeholder-slate-500 transition-all focus:outline-none focus:ring-2 focus:border-transparent ${
                   errors.email ? 'border-red-500 focus:ring-red-500' : 'border-slate-600 bg-slate-800/50 focus:ring-nexivo-primary'
                 }`}
-                placeholder="ornek@email.com"
+                placeholder="name@example.com"
                 autoComplete="email"
               />
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
@@ -206,7 +203,7 @@ const Register = ({ onRegister }: RegisterProps) => {
           {/* Password Input */}
           <div>
             <label htmlFor="password" className="mb-2 block text-sm font-medium text-slate-300">
-              Şifre
+              {t('password')}
             </label>
             <input
               id="password"
@@ -223,8 +220,8 @@ const Register = ({ onRegister }: RegisterProps) => {
             {formData.password && (
               <div className="mt-2">
                 <div className="mb-1 flex items-center justify-between">
-                  <span className="text-xs text-slate-400">Şifre gücü:</span>
-                  <span className="text-xs text-slate-300">{strength.text}</span>
+                  <span className="text-xs text-slate-400">{t('register.passwordStrength')}</span>
+                  {/* Optional label text can be localised if we compute buckets here */}
                 </div>
                 <div className="h-2 w-full rounded-full bg-slate-700">
                   <div
@@ -240,7 +237,7 @@ const Register = ({ onRegister }: RegisterProps) => {
           {/* Confirm Password */}
           <div>
             <label htmlFor="confirmPassword" className="mb-2 block text-sm font-medium text-slate-300">
-              Şifre Tekrar
+              {t('register.confirmPassword')}
             </label>
             <input
               id="confirmPassword"
@@ -269,14 +266,15 @@ const Register = ({ onRegister }: RegisterProps) => {
             />
             <label htmlFor="agreeToTerms" className="text-sm text-slate-300">
               <span>
+                {t('register.terms.prefix')}
                 <Link to="/terms" className="text-nexivo-accent hover:text-nexivo-primary">
-                  Hizmet şartlarını
-                </Link>{' '}
-                ve{' '}
+                  {t('terms.title')}
+                </Link>
+                {t('register.terms.and')}
                 <Link to="/privacy" className="text-nexivo-accent hover:text-nexivo-primary">
-                  gizlilik politikasını
-                </Link>{' '}
-                okudum ve kabul ediyorum
+                  {t('privacy.title')}
+                </Link>
+                {t('register.terms.suffix')}
               </span>
               {errors.agreeToTerms && <p className="mt-1 text-sm text-red-400">{errors.agreeToTerms}</p>}
             </label>
@@ -296,10 +294,10 @@ const Register = ({ onRegister }: RegisterProps) => {
             {isLoading ? (
               <div className="flex items-center justify-center">
                 <div className="mr-2 h-5 w-5 animate-spin rounded-full border-t-2 border-white" />
-                Kayıt Olunuyor...
+                {t('register.loading')}
               </div>
             ) : (
-              'Hesap Oluştur'
+              t('register.submit')
             )}
           </button>
         </form>
@@ -307,9 +305,9 @@ const Register = ({ onRegister }: RegisterProps) => {
         {/* Login Link */}
         <div className="mt-6 text-center">
           <p className="text-slate-400">
-            Zaten hesabınız var mı?{' '}
+            {t('register.haveAccount')}{' '}
             <Link to="/login" className="font-medium text-nexivo-accent transition-colors hover:text-nexivo-primary">
-              Giriş yapın
+              {t('signIn')}
             </Link>
           </p>
         </div>

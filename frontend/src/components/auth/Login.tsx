@@ -52,15 +52,15 @@ const Login = ({ onLogin }: LoginProps) => {
     const nextErrors: ErrorState = {}
 
     if (!formData.email) {
-      nextErrors.email = 'Email adresi gereklidir'
+      nextErrors.email = t('login.validation.emailRequired')
     } else if (!emailPattern.test(formData.email)) {
-      nextErrors.email = 'Geçerli bir email adresi girin'
+      nextErrors.email = t('login.validation.emailInvalid')
     }
 
     if (!formData.password) {
-      nextErrors.password = 'Şifre gereklidir'
+      nextErrors.password = t('login.validation.passwordRequired')
     } else if (formData.password.length < 6) {
-      nextErrors.password = 'Şifre en az 6 karakter olmalıdır'
+      nextErrors.password = t('login.validation.passwordMin')
     }
 
     return nextErrors
@@ -90,7 +90,7 @@ const Login = ({ onLogin }: LoginProps) => {
         error?.response?.data?.detail ||
         error?.response?.data?.error?.message ||
         error?.message ||
-        'Giriş başarısız. Lütfen bilgilerinizi kontrol edin.'
+        t('loginFailed')
       setErrors({ submit: message })
     } finally {
       setIsLoading(false)
@@ -115,15 +115,15 @@ const Login = ({ onLogin }: LoginProps) => {
             </span>
           </div>
         </div>
-        <h2 className="mb-2 text-3xl font-bold text-white">Hesabınıza Giriş Yapın</h2>
-        <p className="text-slate-400">Email yönetiminde devrime katılın</p>
+        <h2 className="mb-2 text-3xl font-bold text-white">{t('login.heading')}</h2>
+        <p className="text-slate-400">{t('login.subtitle')}</p>
       </div>
 
       <div className="rounded-2xl border border-slate-700/50 bg-slate-800/30 p-8 shadow-2xl backdrop-blur-lg">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="email" className="mb-2 block text-sm font-medium text-slate-300">
-              Email Adresi
+              {t('email')}
             </label>
             <div className="relative">
               <input
@@ -153,10 +153,10 @@ const Login = ({ onLogin }: LoginProps) => {
           <div>
             <div className="mb-2 flex items-center justify-between">
               <label htmlFor="password" className="block text-sm font-medium text-slate-300">
-                Şifre
+                {t('password')}
               </label>
               <Link to="/forgot-password" className="text-sm text-nexivo-accent transition-colors hover:text-nexivo-primary">
-                Şifremi Unuttum?
+                {t('forgotPassword')}
               </Link>
             </div>
             <div className="relative">
@@ -194,7 +194,7 @@ const Login = ({ onLogin }: LoginProps) => {
                 onChange={handleChange}
                 className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-nexivo-primary focus:ring-2 focus:ring-nexivo-primary"
               />
-              <span className="ml-2">Beni Hatırla</span>
+              <span className="ml-2">{t('rememberMe')}</span>
             </label>
           </div>
 
@@ -212,10 +212,10 @@ const Login = ({ onLogin }: LoginProps) => {
             {isLoading ? (
               <div className="flex items-center justify-center gap-2">
                 <div className="h-5 w-5 animate-spin rounded-full border-t-2 border-white" />
-                Giriş Yapılıyor...
+                {t('signingIn')}
               </div>
             ) : (
-              'Giriş Yap'
+              t('signIn')
             )}
           </button>
         </form>
@@ -226,7 +226,7 @@ const Login = ({ onLogin }: LoginProps) => {
               <div className="w-full border-t border-slate-600" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-slate-800/30 px-2 text-slate-400">veya</span>
+              <span className="bg-slate-800/30 px-2 text-slate-400">{t('or')}</span>
             </div>
           </div>
 
@@ -242,7 +242,7 @@ const Login = ({ onLogin }: LoginProps) => {
                 <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                 <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
               </svg>
-              Google ile devam et
+              {t('signInWithGoogle')}
             </button>
           </div>
         </div>
@@ -258,9 +258,9 @@ const Login = ({ onLogin }: LoginProps) => {
 
         <div className="mt-6 text-center">
           <p className="text-slate-400">
-            Hesabınız yok mu?{' '}
+            {t('dontHaveAccount')}{' '}
             <Link to="/register" className="font-medium text-nexivo-accent transition-colors hover:text-nexivo-primary">
-              Ücretsiz kaydolun
+              {t('createAccount')}
             </Link>
           </p>
         </div>
