@@ -861,7 +861,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
   const t = useMemo(() => {
     const dict = dictionaries[lang]
-    return (key: string) => dict[key] || key
+    return (key: string) => (key in dict ? dict[key] : key)
   }, [lang])
   return (
     <I18nContext.Provider value={{ lang, setLang, t }}>
