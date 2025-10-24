@@ -11,8 +11,8 @@ import Register from './components/auth/Register'
 import DashboardPage from './pages/Dashboard'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
-import TermsPage from './pages/Terms'
-import PrivacyPage from './pages/Privacy'
+import TermsOfService from '../components/TermsOfService'
+import PrivacyPolicy from '../components/PrivacyPolicy'
 import SecurityPage from './pages/Security'
 import StatusPage from './pages/Status'
 import { useAuth } from './context/AuthContext'
@@ -66,8 +66,8 @@ export default function App() {
             element={isAuthenticated ? <DashboardPage /> : <Navigate to="/login" replace />}
           />
 
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/security" element={<SecurityPage />} />
           <Route path="/status" element={<StatusPage />} />
 
