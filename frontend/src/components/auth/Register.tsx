@@ -266,17 +266,16 @@ const Register = ({ onRegister }: RegisterProps) => {
             />
             <label htmlFor="agreeToTerms" className="text-sm text-slate-300">
               <span>
-                {t('register.terms.prefix')}
-                <Link to="/terms" className="text-nexivo-accent hover:text-nexivo-primary">
-                  {t('terms.title')}
-                </Link>
-                {t('register.terms.and')}
-                <Link to="/privacy" className="text-nexivo-accent hover:text-nexivo-primary">
-                  {t('privacy.title')}
-                </Link>
-                {t('register.terms.suffix')}
+                <Link to="/terms" className="text-blue-400 hover:text-blue-300">
+                  Hizmet şartlarını
+                </Link> ve{' '}
+                <Link to="/privacy" className="text-blue-400 hover:text-blue-300">
+                  gizlilik politikasını
+                </Link> okudum ve kabul ediyorum
               </span>
-              {errors.agreeToTerms && <p className="mt-1 text-sm text-red-400">{errors.agreeToTerms}</p>}
+              {errors.agreeToTerms && (
+                <p className="mt-1 text-sm text-red-400">{errors.agreeToTerms}</p>
+              )}
             </label>
           </div>
 
