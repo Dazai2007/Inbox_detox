@@ -41,7 +41,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (email: string, password: string, fullName?: string, captchaToken?: string | null) => {
     const headers: Record<string, string> = {}
     if (captchaToken) headers['X-Captcha-Token'] = captchaToken
-    await client.post('/api/auth/register', { email, password, full_name: fullName }, { headers })
+    // Backend enum uyumu için sabit değerler ekleniyor
+    await client.post('/api/auth/register', {
+      email,
+      password,
+      full_name: fullName,
+      subscription_tier: 'free',
+      subscription_status: 'free',
+    }, { headers })
   }
 
   const logout = () => {
