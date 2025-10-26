@@ -118,6 +118,7 @@ class AuthService:
             email=email_norm,
             hashed_password=hashed_password,
             full_name=full_name_sanitized,
+            subscription_tier="free",  # Sadece subscription_tier, küçük harf
             timezone=tz,
         )
         db.add(user)
