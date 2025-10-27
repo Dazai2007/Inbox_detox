@@ -37,13 +37,12 @@ class User(Base):
     # Admin flag for privileged actions
     is_admin = Column(Boolean, default=False, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)
-    # subscription_tier ve subscription_status alanları kaldırıldı
+    # subscription_tier and subscription_status fields REMOVED
     gmail_connected = Column(Boolean, default=False, nullable=False)
     gmail_refresh_token = Column(String(1024), nullable=True)
     gmail_access_token = Column(String(2048), nullable=True)
     gmail_token_expiry = Column(DateTime(timezone=True), nullable=True)
     stripe_customer_id = Column(String(255), nullable=True)
-    # User preferred timezone (IANA string, e.g., "Europe/Istanbul"), default UTC
     timezone = Column(String(64), nullable=False, default="UTC")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
