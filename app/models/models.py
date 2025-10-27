@@ -5,7 +5,6 @@ from app.database.database import Base
 import enum
 from datetime import datetime
 
-
 class EmailCategory(str, enum.Enum):
     IMPORTANT = "important"
     INVOICE = "invoice"
@@ -21,14 +20,11 @@ class User(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), unique=True, index=True, nullable=False)
-    # Single password storage column used across the codebase
     hashed_password = Column(String(255), nullable=True)
     full_name = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True)
-    # Admin flag for privileged actions
     is_admin = Column(Boolean, default=False, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)
-    # subscription_tier and subscription_status fields REMOVED
     gmail_connected = Column(Boolean, default=False, nullable=False)
     gmail_refresh_token = Column(String(1024), nullable=True)
     gmail_access_token = Column(String(2048), nullable=True)
@@ -40,7 +36,6 @@ class User(Base):
     
     # Relationships
     emails = relationship("Email", back_populates="user")
-    # NO subscriptions relationship
     email_analytics = relationship("EmailAnalytics", back_populates="user", cascade="all, delete-orphan")
     verification_tokens = relationship("VerificationToken", back_populates="user", cascade="all, delete-orphan")
     password_reset_tokens = relationship("PasswordResetToken", back_populates="user", cascade="all, delete-orphan")
@@ -62,25 +57,6 @@ class Email(Base):
     # Relationships
     user = relationship("User", back_populates="emails")
 
-class Subscription(Base):
-    __tablename__ = "subscriptions"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    # Requested schema fields
-    stripe_customer_id = Column(String(255), nullable=True)
-    stripe_subscription_id = Column(String(255), nullable=True)
-    plan_type = Column(String(50), nullable=True)  # e.g., free/pro/business
-    status = Column(String(50), nullable=False)  # active, cancelled, etc.
-    current_period_start = Column(DateTime(timezone=True), nullable=True)
-    current_period_end = Column(DateTime(timezone=True), nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    
-    # Relationships
-    user = relationship("User", back_populates="subscriptions")
-
-
 class EmailAnalytics(Base):
     __tablename__ = "email_analytics"
 
@@ -96,6 +72,7 @@ class EmailAnalytics(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="email_analytics")
+
 class BlacklistedToken(Base):
     __tablename__ = "blacklisted_tokens"
 
@@ -103,7 +80,6 @@ class BlacklistedToken(Base):
     jti = Column(String(64), unique=True, index=True, nullable=False)
     expires_at = Column(DateTime(timezone=True), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
 
 class VerificationToken(Base):
     __tablename__ = "verification_tokens"
@@ -117,7 +93,6 @@ class VerificationToken(Base):
 
     user = relationship("User", back_populates="verification_tokens")
 
-
 class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"
 
@@ -129,7 +104,6 @@ class PasswordResetToken(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="password_reset_tokens")
-
 
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"
