@@ -37,9 +37,7 @@ class User(Base):
     # Admin flag for privileged actions
     is_admin = Column(Boolean, default=False, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)
-    subscription_tier = Column(Enum(SubscriptionTier), default=SubscriptionTier.FREE)
-    # Requested schema fields
-    subscription_status = Column(Enum(SubscriptionStatus), default=SubscriptionStatus.FREE, nullable=False)
+    # subscription_tier ve subscription_status alanları kaldırıldı
     gmail_connected = Column(Boolean, default=False, nullable=False)
     gmail_refresh_token = Column(String(1024), nullable=True)
     gmail_access_token = Column(String(2048), nullable=True)
