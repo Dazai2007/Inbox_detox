@@ -5,15 +5,6 @@ from app.database.database import Base
 import enum
 from datetime import datetime
 
-class SubscriptionTier(str, enum.Enum):
-    FREE = "free"
-    BASIC = "basic"
-    PREMIUM = "premium"
-
-class SubscriptionStatus(str, enum.Enum):
-    FREE = "free"
-    PRO = "pro"
-    BUSINESS = "business"
 
 class EmailCategory(str, enum.Enum):
     IMPORTANT = "important"
@@ -49,7 +40,7 @@ class User(Base):
     
     # Relationships
     emails = relationship("Email", back_populates="user")
-    subscriptions = relationship("Subscription", back_populates="user")
+    # NO subscriptions relationship
     email_analytics = relationship("EmailAnalytics", back_populates="user", cascade="all, delete-orphan")
     verification_tokens = relationship("VerificationToken", back_populates="user", cascade="all, delete-orphan")
     password_reset_tokens = relationship("PasswordResetToken", back_populates="user", cascade="all, delete-orphan")
