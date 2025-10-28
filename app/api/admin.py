@@ -9,7 +9,7 @@ from app.database.database import get_db
 from app.models.models import User
 from sqlalchemy import func
 from app.schemas.api_responses import ApiMessage, AdminOverview, DailyBucket, UsageTimeSeries
-from app.schemas.schemas import AdminSetSubscription, AdminUpdateUser, UserResponse
+from app.schemas.schemas import UserResponse
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -44,7 +44,7 @@ def get_user(
 @router.patch("/users/{user_id}", response_model=UserResponse, summary="Update user fields")
 def update_user(
     user_id: int,
-    payload: AdminUpdateUser,
+    payload,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -63,7 +63,7 @@ def update_user(
 @router.post("/users/{user_id}/subscriptions", summary="Create or update subscription")
 def set_subscription(
     user_id: int,
-    payload: AdminSetSubscription,
+    payload,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
