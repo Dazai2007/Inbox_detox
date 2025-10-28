@@ -11,21 +11,22 @@ const App: React.FC = () => {
 
   return (
     <div className="container">
-      {/* Sol Taraf: Hoş Geldiniz Bölümü */}
+      {/* Left Section: Welcome */}
       <div className="welcome-section">
         <div className="logo">
-          <i className="fas fa-inbox"></i> NEXIVO
+          <i className="fas fa-inbox"></i>
+          <span style={{ marginLeft: 10 }}>NEXIVO</span>
         </div>
         <h1 className="welcome-title">Hello Nexivo</h1>
         <p className="welcome-text">Join the email productivity revolution. Manage your inbox smarter, faster, and with less stress.</p>
         <ul className="features">
-          <li>AI-powered email sorting</li>
-          <li>Smart templates & automation</li>
-          <li>Focused inbox experience</li>
-          <li>Cross-platform sync</li>
+          <li><i className="fas fa-check"></i> AI-powered email sorting</li>
+          <li><i className="fas fa-check"></i> Smart templates & automation</li>
+          <li><i className="fas fa-check"></i> Focused inbox experience</li>
+          <li><i className="fas fa-check"></i> Cross-platform sync</li>
         </ul>
       </div>
-      {/* Sağ Taraf: Form Bölümü */}
+      {/* Right Section: Forms */}
       <div className="form-section">
         <div className="form-container">
           <div className="tabs">
@@ -52,11 +53,13 @@ const App: React.FC = () => {
               <a href="#" className="forgot-password">Forgot password?</a>
             </div>
             <button className="btn">
-              <i className="fas fa-sign-in-alt"></i> Sign In
+              <i className="fas fa-sign-in-alt"></i>
+              <span style={{ marginLeft: 10 }}>Sign In</span>
             </button>
             <div className="divider">OR</div>
             <button className="btn btn-google">
-              <i className="fab fa-google"></i> Sign in with Google
+              <i className="fab fa-google"></i>
+              <span style={{ marginLeft: 10 }}>Sign in with Google</span>
             </button>
             <div className="footer-text">
               Don't have an account? <span className="link" onClick={() => showForm('register')}>Create one</span>
@@ -93,11 +96,13 @@ const App: React.FC = () => {
               <label htmlFor="terms">I agree to the Terms of Service and Privacy Policy</label>
             </div>
             <button className="btn">
-              <i className="fas fa-user-plus"></i> Create Account
+              <i className="fas fa-user-plus"></i>
+              <span style={{ marginLeft: 10 }}>Create Account</span>
             </button>
             <div className="divider">OR</div>
             <button className="btn btn-google">
-              <i className="fab fa-google"></i> Sign up with Google
+              <i className="fab fa-google"></i>
+              <span style={{ marginLeft: 10 }}>Sign up with Google</span>
             </button>
             <div className="footer-text">
               Already have an account? <span className="link" onClick={() => showForm('login')}>Sign in</span>
