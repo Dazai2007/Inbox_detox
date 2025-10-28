@@ -1,3 +1,42 @@
+/* Gradient animasyonu */
+@keyframes gradient-x {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+.animate-gradient-x {
+    background-size: 200% 200%;
+    animation: gradient-x 10s ease infinite;
+}
+
+/* Input alanları */
+.auth-input {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.20);
+    outline: none;
+    color: #fff;
+    transition: box-shadow 0.2s, border-color 0.2s;
+    box-shadow: 0 2px 16px 0 rgba(0,0,0,0.04);
+}
+.auth-input::placeholder {
+    color: #d1d5db;
+}
+.auth-input:focus {
+    border-color: #818cf8;
+    box-shadow: 0 0 0 2px #818cf8, 0 2px 16px 0 rgba(0,0,0,0.08);
+}
+
+/* Butonlar */
+.auth-btn {
+    width: 100%;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: background 0.2s, box-shadow 0.2s;
+}
 :root {
     --primary-color: #0066cc;
     --secondary-color: #28a745;
