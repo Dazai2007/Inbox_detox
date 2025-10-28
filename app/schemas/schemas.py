@@ -1,3 +1,6 @@
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
 from pydantic import BaseModel, EmailStr, validator
 from typing import Optional, List
 from datetime import datetime
@@ -15,6 +18,7 @@ from pydantic import BaseModel
 
 class LogoutRequest(BaseModel):
     refresh_token: str
+
 # class SubscriptionTier(str, Enum):
 #     FREE = "free"
 #     BASIC = "basic" 
