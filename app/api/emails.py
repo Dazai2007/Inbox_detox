@@ -15,7 +15,6 @@ from app.models.models import (
     Email,
     EmailAnalytics,
     EmailCategory,
-    SubscriptionStatus,
     User,
 )
 from app.schemas.api_responses import EmailsPageResponse, PaginationMeta
@@ -32,26 +31,7 @@ async def analyze_email(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # Enforce FREE plan monthly quota
-    if current_user.subscription_status == SubscriptionStatus.FREE:
-        now = datetime.now(timezone.utc)
-        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        used = (
-            db.query(EmailAnalytics)
-            .filter(
-                EmailAnalytics.user_id == current_user.id,
-                EmailAnalytics.created_at >= month_start,
-            )
-            .count()
-        )
-        if used >= settings.free_monthly_analysis_limit:
-            raise HTTPException(
-                status_code=402,
-                detail=(
-                    f"Monthly quota exceeded: {used}/{settings.free_monthly_analysis_limit}. "
-                    "Upgrade to increase limits."
-                ),
-            )
+
 
     start_time = time.time()
 
