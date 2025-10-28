@@ -3,12 +3,18 @@ from typing import Optional, List
 from datetime import datetime
 from enum import Enum
 from app.models.models import EmailCategory  # Sadece EmailCategory kalsın
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+from pydantic import BaseModel, EmailStr, validator
+from typing import Optional, List
+from datetime import datetime
+from enum import Enum
+from app.models.models import EmailCategory  # Sadece EmailCategory kalsın
 from pydantic import BaseModel
 
 class LogoutRequest(BaseModel):
     refresh_token: str
-
-# Subscription enum'larını TAMAMEN KALDIR
 # class SubscriptionTier(str, Enum):
 #     FREE = "free"
 #     BASIC = "basic" 
