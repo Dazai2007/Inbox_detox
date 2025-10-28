@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.api.auth import get_current_user
 from app.database.database import get_db
-from app.models.models import User, Subscription
+from app.models.models import User
 from sqlalchemy import func
 from app.schemas.api_responses import ApiMessage, AdminOverview, DailyBucket, UsageTimeSeries
 from app.schemas.schemas import AdminSetSubscription, AdminUpdateUser, UserResponse
@@ -71,23 +71,7 @@ def set_subscription(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    # Find latest subscription for the user
-    sub = (
-        db.query(Subscription)
-        .filter(Subscription.user_id == user.id)
-        .order_by(Subscription.id.desc())
-        .first()
-    )
-    if not sub:
-        sub = Subscription(user_id=user.id, status="active")
-    for field, value in payload.model_dump(exclude_unset=True).items():
-        setattr(sub, field, value)
-    # Default dates to now if provided partially
-    now = datetime.now(timezone.utc)
-    if payload.current_period_start and not payload.current_period_end:
-        sub.current_period_end = now
-    db.add(sub)
-    db.commit()
+        # Subscription model and logic removed
     return ApiMessage(message="Subscription updated")
 
 
