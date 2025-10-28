@@ -1,4 +1,7 @@
-* {
+.body {
+  background: red !important;
+}
+
 /* Genel Layout */
 .container {
   display: flex;
