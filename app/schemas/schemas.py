@@ -1,12 +1,14 @@
-class EmailAnalysis(BaseModel):
-    summary: Optional[str] = None
-    category: Optional[EmailCategory] = None
-    confidence_score: Optional[int] = None
+
 from pydantic import BaseModel, EmailStr, validator
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
 from app.models.models import EmailCategory  # Sadece EmailCategory kalsın
+
+class EmailAnalysis(BaseModel):
+    summary: Optional[str] = None
+    category: Optional[EmailCategory] = None
+    confidence_score: Optional[int] = None
 
 class ResetPasswordRequest(BaseModel):
     token: str
