@@ -1,105 +1,270 @@
 
-import React, { useState } from "react";
-import { FcGoogle } from "react-icons/fc";
 
+import React, { useState } from "react";
+
+// --- İkon Komponentleri ---
+const CheckIcon: React.FC = () => (
+  <svg className="w-5 h-5 mr-3 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+  </svg>
+);
+
+const EyeIcon: React.FC = () => (
+  <svg
+    className="w-5 h-5"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+    />
+  </svg>
+);
+
+const EyeOffIcon: React.FC = () => (
+  <svg
+    className="w-5 h-5"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 1.274-4.057 5.064-7 9.542-7 1.865 0 3.61 .588 5.029 1.566l-5.029 5.029zm-2.828-2.828l5.656 5.656M9.879 9.879l-5.657 5.657"
+    />
+  </svg>
+);
+
+const GoogleIcon: React.FC = () => (
+  <svg
+    className="w-5 h-5 mr-3 flex-shrink-0" /* Ezilmeyen logo */
+    viewBox="0 0 48 48"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    <path fill="none" d="M0 0h48v48H0z" />
+  </svg>
+);
+
+// --- Ana Sayfa Komponenti ---
 const AuthPage: React.FC = () => {
-  const [tab, setTab] = useState<"signin" | "signup">("signin");
+  const [tab, setTab] = useState<'login' | 'register'>('login');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
 
   return (
-    <div className="flex h-screen w-screen bg-gradient-to-r from-indigo-700 via-purple-800 to-black animate-gradient-x">
-      <div className="relative w-full max-w-5xl h-[600px] flex rounded-2xl overflow-hidden shadow-2xl m-auto">
-        {/* Sol Panel */}
-        <div className="hidden md:flex w-1/2 bg-gradient-to-br from-indigo-900/70 to-purple-900/70 backdrop-blur-xl text-white flex-col justify-center p-12">
-          <h1 className="text-5xl font-extrabold mb-6 drop-shadow-lg">Hello Nexivo 👋</h1>
-          <p className="text-lg text-gray-200 mb-6">
+    // Arka Plan: Açık mavi gradyan
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-100 to-white font-poppins">
+      {/* Ana Kutu */}
+      <div className="container flex w-[900px] max-w-[95%] min-h-[600px] bg-white rounded-2xl shadow-2xl overflow-hidden">
+        
+        {/* Sol Panel: Koyu Mavi */}
+        <div className="info-panel w-[45%] bg-gradient-to-b from-blue-600 to-blue-800 text-white p-16 flex flex-col justify-center">
+          <h1 className="text-5xl font-bold mb-5 animate-slideInFromLeft">Hello Nexivo</h1>
+          <p className="text-lg mb-8 opacity-0 animate-fadeIn animation-delay-500 leading-relaxed">
             Join the email productivity revolution. Manage your inbox smarter, faster, and with less stress.
           </p>
-          <ul className="space-y-2 text-gray-300">
-            <li>• AI-powered email sorting</li>
-            <li>• Smart templates & automation</li>
-            <li>• Focused inbox experience</li>
-            <li>• Cross-platform sync</li>
+          <ul className="space-y-4">
+            <li className="flex items-center opacity-0 animate-fadeIn animation-delay-800 text-base">
+              <CheckIcon />
+              AI-powered email sorting
+            </li>
+            <li className="flex items-center opacity-0 animate-fadeIn animation-delay-800 text-base">
+              <CheckIcon />
+              Smart templates & automation
+            </li>
+            <li className="flex items-center opacity-0 animate-fadeIn animation-delay-800 text-base">
+              <CheckIcon />
+              Focused inbox experience
+            </li>
+            <li className="flex items-center opacity-0 animate-fadeIn animation-delay-800 text-base">
+              <CheckIcon />
+              Cross-platform sync
+            </li>
           </ul>
         </div>
-        {/* Sağ Panel */}
-        <div className="flex w-full md:w-1/2 justify-center items-center bg-gray-900/40 backdrop-blur-xl">
-          <div className="w-full max-w-md p-8 text-white">
-            {/* Tabs */}
-            <div className="flex border-b border-gray-600 mb-6">
-              <button
-                onClick={() => setTab("signin")}
-                className={`flex-1 py-2 text-center font-medium ${
-                  tab === "signin" ? "border-b-2 border-indigo-400 text-indigo-400" : "text-gray-400"
-                }`}
-              >
+
+        {/* Sağ Panel: Formlar (Açık Gri Arka Plan) */}
+        <div className="form-panel w-[55%] p-12 relative overflow-hidden font-poppins bg-gray-100"> 
+          
+          <div className="tabs flex mb-8 border-b border-gray-200">
+            <button
+              className={`tab-button flex-1 py-4 text-xl font-semibold relative transition-colors duration-300 ${tab === 'login' ? 'active text-blue-600' : 'text-gray-500 hover:text-blue-500'}`}
+              onClick={() => setTab('login')}
+            >
+              Sign In
+            </button>
+            <button
+              className={`tab-button flex-1 py-4 text-xl font-semibold relative transition-colors duration-300 ${tab === 'register' ? 'active text-blue-600' : 'text-gray-500 hover:text-blue-500'}`}
+              onClick={() => setTab('register')}
+            >
+              Create Account
+            </button>
+          </div>
+
+          <div className="form-wrapper relative w-full h-[400px]">
+
+            {/* Giriş Formu */}
+            <form
+              id="login-form"
+              className={`absolute top-0 left-0 w-full flex flex-col gap-5 transition-all duration-700 ${tab === 'login' ? 'opacity-100 translate-x-0 z-10' : 'opacity-0 -translate-x-full z-0'}`}
+            >
+              <h2 className="text-3xl font-bold mb-4 text-gray-800">Welcome Back</h2>
+
+              <div>
+                <label htmlFor="login-email" className="form-label">
+                  Email Address
+                </label>
+                <input 
+                  id="login-email" 
+                  type="email" 
+                  placeholder="you@company.com" 
+                  required 
+                  className="form-input text-gray-900" 
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="login-password" className="form-label">
+                  Password
+                </label>
+                <div className="relative">
+                  <input 
+                    id="login-password" 
+                    type={showLoginPassword ? 'text' : 'password'} 
+                    placeholder=""
+                    required 
+                    className="form-input pr-10 text-gray-900" 
+                  />
+                  <button 
+                    type="button" 
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 cursor-pointer"
+                    onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  >
+                    {showLoginPassword ? <EyeOffIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+              </div>
+              
+              <div className="options flex justify-between items-center text-sm">
+                <label className="flex items-center cursor-pointer text-gray-600">
+                  <input type="checkbox" className="mr-2 accent-blue-600" /> Remember me
+                </label>
+                <a href="#" className="text-blue-600 hover:underline text-sm">Forgot password?</a>
+              </div>
+              
+              <button type="submit" className="submit-btn bg-blue-600 hover:bg-blue-700 text-white">
                 Sign In
               </button>
-              <button
-                onClick={() => setTab("signup")}
-                className={`flex-1 py-2 text-center font-medium ${
-                  tab === "signup" ? "border-b-2 border-indigo-400 text-indigo-400" : "text-gray-400"
-                }`}
-              >
+
+              <div className="divider flex items-center justify-center my-2">
+                <hr className="flex-grow border-gray-300" />
+                <span className="mx-4 text-gray-500 text-sm">OR</span>
+                <hr className="flex-grow border-gray-300" />
+              </div>
+
+              <button type="button" className="google-btn">
+                <GoogleIcon />
+                Sign In with Google
+              </button>
+
+              <p className="text-center text-gray-600 text-sm mt-4">
+                Don't have an account? <span onClick={() => setTab('register')} className="text-blue-600 hover:underline cursor-pointer">Create one</span>
+              </p>
+            </form>
+
+            {/* Kayıt Formu */}
+            <form
+              id="register-form"
+              className={`absolute top-0 left-0 w-full flex flex-col gap-5 transition-all duration-700 ${tab === 'register' ? 'opacity-100 translate-x-0 z-10' : 'opacity-0 translate-x-full z-0'}`}
+            >
+              <h2 className="text-3xl font-bold mb-4 text-gray-800">Create Your Account</h2>
+
+              <div>
+                <label htmlFor="register-fullname" className="form-label">
+                  Full Name
+                </label>
+                <input 
+                  id="register-fullname" 
+                  type="text" 
+                  placeholder="Your Name" 
+                  required 
+                  className="form-input text-gray-900" 
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="register-email" className="form-label">
+                  Email Address
+                </label>
+                <input 
+                  id="register-email" 
+                  type="email" 
+                  placeholder="you@company.com" 
+                  required 
+                  className="form-input text-gray-900" 
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="register-password" className="form-label">
+                  Create Password
+                </label>
+                <div className="relative">
+                  <input 
+                    id="register-password" 
+                    type={showRegisterPassword ? 'text' : 'password'}
+                    placeholder=""
+                    required 
+                    className="form-input pr-10 text-gray-900"
+                  />
+                  <button 
+                    type="button" 
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 cursor-pointer"
+                    onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                  >
+                    {showRegisterPassword ? <EyeOffIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+              </div>
+              
+              <button type="submit" className="submit-btn bg-blue-600 hover:bg-blue-700 text-white">
                 Create Account
               </button>
-            </div>
-            {/* Forms */}
-            {tab === "signin" ? (
-              <div>
-                <h2 className="text-3xl font-semibold mb-2">Welcome Back</h2>
-                <p className="text-gray-400 mb-6">Sign in to your account to continue</p>
-                <form className="space-y-4">
-                  <input type="email" placeholder="Email Address" className="auth-input" />
-                  <input type="password" placeholder="Password" className="auth-input" />
-                  <div className="flex items-center justify-between text-sm">
-                    <label className="flex items-center gap-2">
-                      <input type="checkbox" /> Remember me
-                    </label>
-                    <a href="#" className="text-indigo-400 hover:underline">
-                      Forgot password?
-                    </a>
-                  </div>
-                  <button className="auth-btn bg-indigo-600 hover:bg-indigo-700">Sign In</button>
-                </form>
-                <div className="divider">OR</div>
-                <button className="auth-btn bg-white text-gray-800 flex items-center justify-center gap-2">
-                  <FcGoogle size={20} /> Sign in with Google
-                </button>
-                <p className="mt-6 text-sm text-gray-400">
-                  Don’t have an account?{" "}
-                  <button onClick={() => setTab("signup")} className="text-indigo-400 hover:underline">
-                    Create one
-                  </button>
-                </p>
+
+              <div className="divider flex items-center justify-center my-2">
+                <hr className="flex-grow border-gray-300" />
+                <span className="mx-4 text-gray-500 text-sm">OR</span>
+                <hr className="flex-grow border-gray-300" />
               </div>
-            ) : (
-              <div>
-                <h2 className="text-3xl font-semibold mb-2">Create Account</h2>
-                <p className="text-gray-400 mb-6">Join Nexivo and boost your productivity</p>
-                <form className="space-y-4">
-                  <input type="text" placeholder="First Name" className="auth-input" />
-                  <input type="text" placeholder="Last Name" className="auth-input" />
-                  <input type="email" placeholder="Email Address" className="auth-input" />
-                  <input type="password" placeholder="Password" className="auth-input" />
-                  <button className="auth-btn bg-indigo-600 hover:bg-indigo-700">Create Account</button>
-                </form>
-                <div className="divider">OR</div>
-                <button className="auth-btn bg-white text-gray-800 flex items-center justify-center gap-2">
-                  <FcGoogle size={20} /> Sign up with Google
-                </button>
-                <p className="mt-6 text-sm text-gray-400">
-                  Already have an account?{" "}
-                  <button onClick={() => setTab("signin")} className="text-indigo-400 hover:underline">
-                    Sign In
-                  </button>
-                </p>
-              </div>
-            )}
+
+              <button type="button" className="google-btn">
+                <GoogleIcon />
+                Sign Up with Google
+              </button>
+              
+              <p className="text-center text-gray-600 text-sm mt-4">
+                Already have an account? <span onClick={() => setTab('login')} className="text-blue-600 hover:underline cursor-pointer">Sign In</span>
+              </p>
+            </form>
           </div>
         </div>
       </div>
     </div>
   );
+};
 
-
-
+export default AuthPage;

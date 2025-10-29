@@ -1,595 +1,98 @@
-.body {
-  background: red !important;
-}
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-/* Genel Layout */
-.container {
-  display: flex;
-  height: 100vh;
-  font-family: 'Inter', sans-serif;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* Sol Panel */
-.welcome-section {
-  flex: 1;
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
-  color: white;
-  padding: 60px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.logo {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 40px;
-  display: flex;
-  align-items: center;
-}
-.welcome-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 20px;
-}
-.welcome-text {
-  font-size: 1.1rem;
-  margin-bottom: 20px;
-  line-height: 1.5;
-}
-.features {
-  list-style: none;
-  padding: 0;
-}
-.features li {
-  margin-bottom: 12px;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-}
-.features i {
-  margin-right: 8px;
-  color: #22c55e;
-}
-
-/* Sağ Panel */
-.form-section {
-  flex: 1;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.form-container {
-  width: 100%;
-  max-width: 400px;
-}
-
-/* Tabs */
-.tabs {
-  display: flex;
-  border-bottom: 1px solid #ddd;
-  margin-bottom: 20px;
-}
-.tab {
-  flex: 1;
-  text-align: center;
-  padding: 12px;
-  cursor: pointer;
-  font-weight: 500;
-  color: #666;
-  transition: all 0.2s ease;
-}
-.tab.active {
-  color: #4f46e5;
-  border-bottom: 2px solid #4f46e5;
-}
-
-/* Form */
-.form {
-  display: none;
-}
-.form.active {
-  display: block;
-}
-.form-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-.form-subtitle {
-  color: #666;
-  margin-bottom: 20px;
-}
-.input-group {
-  margin-bottom: 15px;
-  display: flex;
-  flex-direction: column;
-}
-.input-group label {
-  font-size: 0.9rem;
-  margin-bottom: 5px;
-  color: #444;
-}
-.input-group input {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  outline: none;
-  font-size: 0.95rem;
-}
-.input-group input:focus {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
-}
-
-/* Login Options */
-.login-options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-.checkbox {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.forgot-password {
-  color: #4f46e5;
-  font-size: 0.9rem;
-  text-decoration: none;
-}
-.forgot-password:hover {
-  text-decoration: underline;
-}
-
-/* Buttons */
-.btn {
-  width: 100%;
-  padding: 12px;
-  background: #4f46e5;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.btn:hover {
-  background: #4338ca;
-}
-.btn-google {
-  background: white;
-  color: #444;
-
-@keyframes gradient-x {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-.animate-gradient-x {
-  background-size: 200% 200%;
-  animation: gradient-x 10s ease infinite;
-}
-
-.auth-input {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
-  outline: none;
-  color: white;
-}
-.auth-input:focus {
-  border-color: #818cf8;
-  box-shadow: 0 0 0 2px rgba(129,140,248,0.4);
-}
-
-.auth-btn {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.divider {
-  text-align: center;
-  margin: 20px 0;
-  color: #aaa;
-  position: relative;
-}
-.divider::before,
-.divider::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  width: 40%;
-  height: 1px;
-  background: #444;
-}
-.divider::before { left: 0; }
-.divider::after { right: 0; }
-  border: 1px solid #ddd;
-}
-.btn-google:hover {
-  background: #f9f9f9;
-}
-
-/* Divider */
-.divider {
-  text-align: center;
-  margin: 20px 0;
-  color: #aaa;
-  position: relative;
-  font-size: 0.9rem;
-}
-.divider::before,
-.divider::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  width: 40%;
-  height: 1px;
-  background: #ddd;
-}
-.divider::before {
-  left: 0;
-}
-.divider::after {
-  right: 0;
-}
-
-/* Footer Text */
-.footer-text {
-  margin-top: 20px;
-  font-size: 0.9rem;
-  color: #666;
-  text-align: center;
-}
-.footer-text .link {
-  color: #4f46e5;
-  cursor: pointer;
-  font-weight: 500;
-}
-.footer-text .link:hover {
-  text-decoration: underline;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column;
-  }
-  .welcome-section {
-    display: none;
-  }
-  .form-section {
-    flex: none;
-    height: 100vh;
+@layer base {
+  body {
+    font-family: 'Poppins', sans-serif;
   }
 }
 
-.welcome-section {
-  flex: 1;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  color: white;
-  padding: 50px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
+@layer components {
 
-.welcome-section::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  transform: scale(0);
-  animation: pulse 8s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(0); opacity: 1; }
-  50% { transform: scale(1); opacity: 0; }
-}
-
-.logo {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-}
-
-.logo i {
-  margin-right: 10px;
-  font-size: 32px;
-}
-
-.welcome-title {
-  font-size: 42px;
-  font-weight: 700;
-  margin-bottom: 20px;
-  line-height: 1.2;
-}
-
-.welcome-text {
-  font-size: 18px;
-  line-height: 1.6;
-  opacity: 0.9;
-  margin-bottom: 30px;
-}
-
-.features {
-  list-style: none;
-  margin-top: 30px;
-}
-
-.features li {
-  margin-bottom: 15px;
-  display: flex;
-  align-items: center;
-  font-size: 16px;
-}
-
-.form-section {
-  flex: 1;
-  padding: 50px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  background: var(--secondary);
-}
-
-.form-container {
-  max-width: 400px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.form-title {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 8px;
-  text-align: center;
-}
-
-.form-subtitle {
-  color: var(--text-light);
-  margin-bottom: 30px;
-  text-align: center;
-  font-size: 16px;
-}
-
-.tabs {
-  display: flex;
-  margin-bottom: 30px;
-  border-bottom: 1px solid var(--border);
-  justify-content: center;
-}
-
-.tab {
-  padding: 12px 24px;
-  cursor: pointer;
-  font-weight: 600;
-  color: var(--text-light);
-  transition: all 0.3s;
-  position: relative;
-  font-size: 16px;
-}
-
-.tab.active {
-  color: var(--primary);
-}
-
-.tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--primary);
-}
-
-.form {
-  display: none;
-}
-
-.form.active {
-  display: block;
-  animation: slideIn 0.5s ease-out;
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(20px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-.input-group {
-  margin-bottom: 20px;
-  position: relative;
-}
-
-.input-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: var(--text);
-  font-size: 14px;
-}
-
-.input-group input {
-  width: 100%;
-  padding: 15px;
-  border: 2px solid var(--border);
-  border-radius: 10px;
-  font-size: 16px;
-  transition: all 0.3s;
-  background: white;
-}
-
-.input-group input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-  outline: none;
-}
-
-.input-group input::placeholder {
-  color: #94a3b8;
-  font-size: 14px;
-}
-
-.name-row {
-  display: flex;
-  gap: 15px;
-}
-
-.name-row .input-group {
-  flex: 1;
-}
-
-.login-options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.checkbox {
-  display: flex;
-  align-items: center;
-  font-size: 14px;
-  color: var(--text);
-}
-
-.checkbox input {
-  margin-right: 10px;
-}
-
-.forgot-password {
-  color: var(--primary);
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.forgot-password:hover {
-  text-decoration: underline;
-}
-
-.btn {
-  width: 100%;
-  padding: 15px;
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 15px;
-}
-
-.btn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow);
-}
-
-.btn i {
-  margin-right: 10px;
-}
-
-.divider {
-  text-align: center;
-  margin: 25px 0;
-  position: relative;
-  color: var(--text-light);
-  font-size: 14px;
-}
-
-.divider::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 45%;
-  height: 1px;
-  background: var(--border);
-}
-
-.divider::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  right: 0;
-  width: 45%;
-  height: 1px;
-  background: var(--border);
-}
-
-.btn-google {
-  background: white;
-  color: var(--text);
-  border: 2px solid var(--border);
-}
-
-.btn-google:hover {
-  background: #f8fafc;
-  border-color: var(--primary);
-}
-
-.footer-text {
-  text-align: center;
-  margin-top: 20px;
-  color: var(--text-light);
-  font-size: 14px;
-}
-
-.link {
-  color: var(--primary);
-  text-decoration: none;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.link:hover {
-  text-decoration: underline;
-}
-
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column;
-    height: auto;
+  /* --- Input Stilleri (Aynı) --- */
+  .form-input {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg text-base;
+    @apply focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200;
+    /* Hafif arka planı geri ekleyebiliriz istersen */
+    /* @apply bg-gray-50; */
   }
-  
-  .welcome-section {
-    padding: 30px;
+
+  .form-label {
+    @apply block text-sm font-medium text-gray-700 mb-2;
   }
-  
-  .form-section {
-    padding: 30px;
+
+  /* --- Diğer Stiller (Aynı) --- */
+  .submit-btn {
+    @apply w-full p-3 border-none rounded-lg text-white text-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200;
   }
-  
-  .login-options {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+  .submit-btn:hover {
+    @apply cursor-pointer;
+  }
+
+  .google-btn {
+    @apply w-full p-3 border border-gray-300 rounded-lg flex items-center justify-center text-gray-800 font-medium bg-white shadow-sm hover:bg-gray-50 hover:shadow-md transition-all duration-200;
+  }
+
+  /* --- YENİ: Animasyonlu Blob Stilleri --- */
+  /* Sağ panele uygulanacak */
+  .form-panel {
+    /* position: relative; Zaten TSX'te var */
+    /* background: white; TSX'te bg-gray-100 var, onu kullanıyoruz */
+    /* overflow: hidden; Zaten TSX'te var */
+  }
+
+  /* Mor blob */
+  .form-panel::before {
+    content: "";
+    position: absolute;
+    top: -120px;
+    right: -120px;
+    width: 350px;
+    height: 350px;
+    background: #a855f7; /* Tailwind purple-600 */
+    filter: blur(120px);
+    opacity: 0.5;
+    border-radius: 50%;
+    animation: blob-move-1 18s ease-in-out infinite alternate;
+    z-index: 0; /* İçeriğin arkasında kalması için */
+  }
+
+  /* Turkuaz blob */
+  .form-panel::after {
+    content: "";
+    position: absolute;
+    bottom: -120px;
+    left: -120px;
+    width: 350px;
+    height: 350px;
+    background: #06b6d4; /* Tailwind cyan-500 */
+    filter: blur(120px);
+    opacity: 0.5;
+    border-radius: 50%;
+    animation: blob-move-2 22s ease-in-out infinite alternate;
+    z-index: 0; /* İçeriğin arkasında kalması için */
+  }
+}
+
+@layer utilities {
+  /* Tab Geçiş Çizgisi (Aynı) */
+  .tab-button.active::after {
+    content: '';
+    @apply absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-1 bg-blue-600 rounded-t transition-all duration-300 ease-in-out;
+  }
+
+  /* YENİ: Blob Animasyonları */
+  @keyframes blob-move-1 {
+    0%   { transform: translate(0, 0) scale(1); }
+    50%  { transform: translate(-40px, 30px) scale(1.1); }
+    100% { transform: translate(20px, -20px) scale(0.9); }
+  }
+  @keyframes blob-move-2 {
+    0%   { transform: translate(0, 0) scale(1); }
+    50%  { transform: translate(40px, -30px) scale(1.2); }
+    100% { transform: translate(-20px, 20px) scale(0.95); }
   }
 }
