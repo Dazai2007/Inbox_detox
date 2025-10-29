@@ -1,6 +1,3 @@
-// src/AuthPage.tsx
-// NİHAİ KOD (Çalışan Görsel + onSubmit + Axios + Hata Yönetimi - Hepsi Bir Arada)
-
 import React, { useState } from "react";
 import axios from 'axios'; 
 // import { useNavigate } from "react-router-dom"; 
@@ -68,14 +65,12 @@ const AuthPage: React.FC = () => {
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   
-  // Input state'leri
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [registerName, setRegisterName] = useState('');
   const [registerEmail, setRegisterEmail] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
 
-  // API state'leri
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -86,7 +81,7 @@ const AuthPage: React.FC = () => {
     event.preventDefault(); 
     setLoading(true); 
     setError(null);   
-    console.log('Login denemesi:', { email: loginEmail, password: loginPassword });
+    console.log('API isteği başlıyor:', { email: loginEmail, password: loginPassword }); // Yeni Log
 
     const formData = new FormData();
     formData.append('username', loginEmail); 
@@ -94,23 +89,28 @@ const AuthPage: React.FC = () => {
 
     try {
       // '/api/auth/login' backend adresinizle değiştirmeyi unutmayın
+      // Örn: 'http://localhost:8000/api/auth/login'
+      console.log('axios.post isteği gönderiliyor...'); // Yeni Log
       const response = await axios.post('/api/auth/login', formData); 
+      console.log('axios.post yanıtı alındı:', response); // Yeni Log
 
       console.log('Giriş başarılı:', response.data);
       localStorage.setItem('accessToken', response.data.access_token);
       localStorage.setItem('refreshToken', response.data.refresh_token); 
       
-      alert('Giriş Başarılı!'); 
+      alert('Giriş Başarılı!'); // ESKİ ALERT YOK! YENİ ALERT BU!
       // navigate('/dashboard'); // Başarılı giriş sonrası yönlendirme
 
     } catch (err) {
-      console.error('Giriş hatası:', err);
+      console.error('Giriş hatası:', err); // Hata detayını konsola yazdır
       if (axios.isAxiosError(err) && err.response) {
+        console.error('Backend Hata Yanıtı:', err.response.data); // Yeni Log
         setError(err.response.data.detail || 'Giriş sırasında bir hata oluştu.');
       } else {
         setError('Bağlantı hatası veya bilinmeyen bir hata oluştu.');
       }
     } finally {
+      console.log('API isteği tamamlandı (finally bloğu).'); // Yeni Log
       setLoading(false); 
     }
   };
@@ -120,29 +120,32 @@ const AuthPage: React.FC = () => {
      event.preventDefault();
      setLoading(true);
      setError(null);
-     console.log('Kayıt denemesi:', { name: registerName, email: registerEmail, password: registerPassword });
+     console.log('Kayıt API isteği başlıyor:', { name: registerName, email: registerEmail, password: registerPassword }); // Yeni Log
 
      try {
         // '/api/auth/register' backend adresinizle değiştirmeyi unutmayın
+        console.log('axios.post isteği gönderiliyor (register)...'); // Yeni Log
         const response = await axios.post('/api/auth/register', {
             email: registerEmail,
             password: registerPassword,
             full_name: registerName,
-            // timezone: "Europe/Istanbul" // Gerekirse ekleyin
+            // timezone: "Europe/Istanbul" 
         });
         console.log('Kayıt başarılı:', response.data);
         alert('Kayıt Başarılı! Lütfen giriş yapın.');
-        setTab('login'); // Kayıt sonrası login tabına geç
-        setError(null); // Başarılı kayıt sonrası hatayı temizle
+        setTab('login'); 
+        setError(null); 
 
      } catch (err) {
-        console.error('Kayıt hatası:', err);
+        console.error('Kayıt hatası:', err); // Hata detayını konsola yazdır
         if (axios.isAxiosError(err) && err.response) {
-            setError(err.response.data.detail || 'Kayıt sırasında bir hata oluştu.');
+           console.error('Backend Kayıt Hata Yanıtı:', err.response.data); // Yeni Log
+           setError(err.response.data.detail || 'Kayıt sırasında bir hata oluştu.');
         } else {
-            setError('Bağlantı hatası veya bilinmeyen bir hata oluştu.');
+           setError('Bağlantı hatası veya bilinmeyen bir hata oluştu.');
         }
      } finally {
+        console.log('Kayıt API isteği tamamlandı (finally bloğu).'); // Yeni Log
         setLoading(false);
      }
   };
@@ -184,14 +187,12 @@ const AuthPage: React.FC = () => {
 
           <div className="form-wrapper relative w-full h-auto"> 
 
-            {/* Hata Mesajı */}
             {error && (
               <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm transition-opacity duration-300">
                 {error}
               </div>
             )}
 
-            {/* Giriş Formu */}
             <form
               id="login-form"
               className={`absolute top-0 left-0 w-full flex flex-col gap-4 transition-all duration-700 ${tab === 'login' ? 'opacity-100 translate-x-0 z-10' : 'opacity-0 -translate-x-full z-0 pointer-events-none'}`}
@@ -238,7 +239,6 @@ const AuthPage: React.FC = () => {
               </p>
             </form>
 
-            {/* Kayıt Formu */}
             <form
               id="register-form"
               className={`absolute top-0 left-0 w-full flex flex-col gap-4 transition-all duration-700 ${tab === 'register' ? 'opacity-100 translate-x-0 z-10' : 'opacity-0 -translate-x-full z-0 pointer-events-none'}`}
