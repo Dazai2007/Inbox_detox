@@ -164,6 +164,55 @@
 .btn-google {
   background: white;
   color: #444;
+
+@keyframes gradient-x {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 10s ease infinite;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  outline: none;
+  color: white;
+}
+.auth-input:focus {
+  border-color: #818cf8;
+  box-shadow: 0 0 0 2px rgba(129,140,248,0.4);
+}
+
+.auth-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.divider {
+  text-align: center;
+  margin: 20px 0;
+  color: #aaa;
+  position: relative;
+}
+.divider::before,
+.divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: #444;
+}
+.divider::before { left: 0; }
+.divider::after { right: 0; }
   border: 1px solid #ddd;
 }
 .btn-google:hover {
