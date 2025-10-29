@@ -1,9 +1,260 @@
-
+// src/AuthPage.tsx
+// onSubmit fonksiyonu ve state'ler eklendi (Hatasız Versiyon)
 
 import React, { useState } from "react";
+// Yönlendirme için react-router-dom gerekebilir (sonraki adım)
+// import { useNavigate } from "react-router-dom"; 
 
-// --- İkon Komponentleri ---
-const CheckIcon: React.FC = () => (
+// --- Ana Sayfa Komponenti ---
+const AuthPage: React.FC = () => {
+  const [tab, setTab] = useState<'login' | 'register'>('login');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  
+  const [registerName, setRegisterName] = useState('');
+  const [registerEmail, setRegisterEmail] = useState('');
+  const [registerPassword, setRegisterPassword] = useState('');
+
+  // const navigate = useNavigate();
+
+  const handleLoginSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); 
+    console.log('Login denemesi:', { email: loginEmail, password: loginPassword });
+
+    // --- BURAYA BACKEND İSTEĞİ GELECEK ---
+    // try { ... } catch (error) { ... }
+    // --- BACKEND İSTEĞİ BİTTİ ---
+
+     alert(`Giriş denemesi yapıldı:\nEmail: ${loginEmail}\nŞifre: ${loginPassword}\n\nBackend bağlantısı henüz yok!`);
+  };
+
+  const handleRegisterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+     event.preventDefault();
+     console.log('Kayıt denemesi:', { name: registerName, email: registerEmail, password: registerPassword });
+     alert(`Kayıt denemesi yapıldı:\nİsim: ${registerName}\nEmail: ${registerEmail}\nŞifre: ${registerPassword}\n\nBackend bağlantısı henüz yok!`);
+     // ... (Benzer API isteği buraya gelecek) ...
+  };
+
+
+  return (
+    // Arka Plan: Açık mavi gradyan
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-100 to-white font-poppins">
+      {/* Ana Kutu */}
+      <div className="container flex w-[900px] max-w-[95%] min-h-[600px] bg-white rounded-2xl shadow-2xl overflow-hidden">
+        
+        {/* Sol Panel: Koyu Mavi */}
+        <div className="info-panel w-[45%] bg-gradient-to-b from-blue-600 to-blue-800 text-white p-16 flex flex-col justify-center">
+          <h1 className="text-5xl font-bold mb-5 animate-slideInFromLeft">Hello Nexivo</h1>
+          <p className="text-lg mb-8 opacity-0 animate-fadeIn animation-delay-500 leading-relaxed">
+            Join the email productivity revolution. Manage your inbox smarter, faster, and with less stress.
+          </p>
+          <ul className="space-y-4">
+            <li className="flex items-center opacity-0 animate-fadeIn animation-delay-800 text-base">
+              <CheckIcon />
+              AI-powered email sorting
+            </li>
+            <li className="flex items-center opacity-0 animate-fadeIn animation-delay-800 text-base">
+              <CheckIcon />
+              Smart templates & automation
+            </li>
+            <li className="flex items-center opacity-0 animate-fadeIn animation-delay-800 text-base">
+              <CheckIcon />
+              Focused inbox experience
+            </li>
+            <li className="flex items-center opacity-0 animate-fadeIn animation-delay-800 text-base">
+              <CheckIcon />
+              Cross-platform sync
+            </li>
+          </ul>
+        </div>
+
+        {/* Sağ Panel: Formlar */}
+        <div className="form-panel w-[55%] p-12 relative overflow-hidden font-poppins bg-gray-100"> 
+          
+          <div className="tabs flex mb-8 border-b border-gray-200">
+            <button
+              className={`tab-button flex-1 py-4 text-xl font-semibold relative transition-colors duration-300 ${tab === 'login' ? 'active text-blue-600' : 'text-gray-500 hover:text-blue-500'}`}
+              onClick={() => setTab('login')}
+            >
+              Sign In
+            </button>
+            <button
+              className={`tab-button flex-1 py-4 text-xl font-semibold relative transition-colors duration-300 ${tab === 'register' ? 'active text-blue-600' : 'text-gray-500 hover:text-blue-500'}`}
+              onClick={() => setTab('register')}
+            >
+              Create Account
+            </button>
+          </div>
+
+          <div className="form-wrapper relative w-full h-[400px]">
+
+            {/* Giriş Formu */}
+            <form
+              id="login-form"
+              className={`absolute top-0 left-0 w-full flex flex-col gap-5 transition-all duration-700 ${tab === 'login' ? 'opacity-100 translate-x-0 z-10' : 'opacity-0 -translate-x-full z-0'}`}
+              onSubmit={handleLoginSubmit} 
+            >
+              <h2 className="text-3xl font-bold mb-4 text-gray-800">Welcome Back</h2>
+
+              <div>
+                <label htmlFor="login-email" className="form-label">
+                  Email Address
+                </label>
+                <input 
+                  id="login-email" 
+                  type="email" 
+                  placeholder="you@company.com" 
+                  required 
+                  className="form-input text-gray-900" 
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="login-password" className="form-label">
+                  Password
+                </label>
+                <div className="relative">
+                  <input 
+                    id="login-password" 
+                    type={showLoginPassword ? 'text' : 'password'} 
+                    placeholder=""
+                    required 
+                    className="form-input pr-10 text-gray-900" 
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                  />
+                  <button 
+                    type="button" 
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 cursor-pointer"
+                    onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  >
+                    {showLoginPassword ? <EyeOffIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+              </div>
+              
+              <div className="options flex justify-between items-center text-sm">
+                <label className="flex items-center cursor-pointer text-gray-600">
+                  <input type="checkbox" className="mr-2 accent-blue-600" /> Remember me
+                </label>
+                <a href="#" className="text-blue-600 hover:underline text-sm">Forgot password?</a>
+              </div>
+              
+              <button type="submit" className="submit-btn bg-blue-600 hover:bg-blue-700 text-white">
+                Sign In
+              </button>
+
+              <div className="divider flex items-center justify-center my-2">
+                <hr className="flex-grow border-gray-300" />
+                <span className="mx-4 text-gray-500 text-sm">OR</span>
+                <hr className="flex-grow border-gray-300" />
+              </div>
+
+              <button type="button" className="google-btn">
+                <GoogleIcon />
+                Sign In with Google
+              </button>
+
+              <p className="text-center text-gray-600 text-sm mt-4">
+                Don't have an account? <span onClick={() => setTab('register')} className="text-blue-600 hover:underline cursor-pointer">Create one</span>
+              </p>
+            </form>
+
+            {/* Kayıt Formu */}
+            <form
+              id="register-form"
+              className={`absolute top-0 left-0 w-full flex flex-col gap-5 transition-all duration-700 ${tab === 'register' ? 'opacity-100 translate-x-0 z-10' : 'opacity-0 -translate-x-full z-0'}`}
+              onSubmit={handleRegisterSubmit}
+            >
+              <h2 className="text-3xl font-bold mb-4 text-gray-800">Create Your Account</h2>
+
+              <div>
+                <label htmlFor="register-fullname" className="form-label">
+                  Full Name
+                </label>
+                <input 
+                  id="register-fullname" 
+                  type="text" 
+                  placeholder="Your Name" 
+                  required 
+                  className="form-input text-gray-900" 
+                  value={registerName}
+                  onChange={(e) => setRegisterName(e.target.value)}
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="register-email" className="form-label">
+                  Email Address
+                </label>
+                <input 
+                  id="register-email" 
+                  type="email" 
+                  placeholder="you@company.com" 
+                  required 
+                  className="form-input text-gray-900" 
+                  value={registerEmail}
+                  onChange={(e) => setRegisterEmail(e.target.value)}
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="register-password" className="form-label">
+                  Create Password
+                </label>
+                <div className="relative">
+                  <input 
+                    id="register-password" 
+                    type={showRegisterPassword ? 'text' : 'password'}
+                    placeholder=""
+                    required 
+                    className="form-input pr-10 text-gray-900"
+                    value={registerPassword}
+                    onChange={(e) => setRegisterPassword(e.target.value)}
+                  />
+                 <button 
+                    type="button" 
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 cursor-pointer"
+                    onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                  >
+                    {showRegisterPassword ? <EyeOffIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+              </div>
+              
+              <button type="submit" className="submit-btn bg-blue-600 hover:bg-blue-700 text-white">
+                Create Account
+              </button>
+
+              <div className="divider flex items-center justify-center my-2">
+                <hr className="flex-grow border-gray-300" />
+                <span className="mx-4 text-gray-500 text-sm">OR</span>
+                <hr className="flex-grow border-gray-300" />
+              </div>
+
+              <button type="button" className="google-btn">
+                <GoogleIcon />
+                Sign Up with Google
+              </button>
+              
+              <p className="text-center text-gray-600 text-sm mt-4">
+                Already have an account? <span onClick={() => setTab('login')} className="text-blue-600 hover:underline cursor-pointer">Sign In</span>
+              </p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}; // AuthPage komponenti bitti
+
+// --- İkon Komponentleri (Burada tam SVG kodları var) ---
+const CheckIcon: React.FC = () => ( 
   <svg className="w-5 h-5 mr-3 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
   </svg>
@@ -46,7 +297,7 @@ const EyeOffIcon: React.FC = () => (
 
 const GoogleIcon: React.FC = () => (
   <svg
-    className="w-5 h-5 mr-3 flex-shrink-0" /* Ezilmeyen logo */
+    className="w-5 h-5 mr-3 flex-shrink-0"
     viewBox="0 0 48 48"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
@@ -58,213 +309,5 @@ const GoogleIcon: React.FC = () => (
     <path fill="none" d="M0 0h48v48H0z" />
   </svg>
 );
-
-// --- Ana Sayfa Komponenti ---
-const AuthPage: React.FC = () => {
-  const [tab, setTab] = useState<'login' | 'register'>('login');
-  const [showLoginPassword, setShowLoginPassword] = useState(false);
-  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
-
-  return (
-    // Arka Plan: Açık mavi gradyan
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-100 to-white font-poppins">
-      {/* Ana Kutu */}
-      <div className="container flex w-[900px] max-w-[95%] min-h-[600px] bg-white rounded-2xl shadow-2xl overflow-hidden">
-        
-        {/* Sol Panel: Koyu Mavi */}
-        <div className="info-panel w-[45%] bg-gradient-to-b from-blue-600 to-blue-800 text-white p-16 flex flex-col justify-center">
-          <h1 className="text-5xl font-bold mb-5 animate-slideInFromLeft">Hello Nexivo</h1>
-          <p className="text-lg mb-8 opacity-0 animate-fadeIn animation-delay-500 leading-relaxed">
-            Join the email productivity revolution. Manage your inbox smarter, faster, and with less stress.
-          </p>
-          <ul className="space-y-4">
-            <li className="flex items-center opacity-0 animate-fadeIn animation-delay-800 text-base">
-              <CheckIcon />
-              AI-powered email sorting
-            </li>
-            <li className="flex items-center opacity-0 animate-fadeIn animation-delay-800 text-base">
-              <CheckIcon />
-              Smart templates & automation
-            </li>
-            <li className="flex items-center opacity-0 animate-fadeIn animation-delay-800 text-base">
-              <CheckIcon />
-              Focused inbox experience
-            </li>
-            <li className="flex items-center opacity-0 animate-fadeIn animation-delay-800 text-base">
-              <CheckIcon />
-              Cross-platform sync
-            </li>
-          </ul>
-        </div>
-
-        {/* Sağ Panel: Formlar (Açık Gri Arka Plan) */}
-        <div className="form-panel w-[55%] p-12 relative overflow-hidden font-poppins bg-gray-100"> 
-          
-          <div className="tabs flex mb-8 border-b border-gray-200">
-            <button
-              className={`tab-button flex-1 py-4 text-xl font-semibold relative transition-colors duration-300 ${tab === 'login' ? 'active text-blue-600' : 'text-gray-500 hover:text-blue-500'}`}
-              onClick={() => setTab('login')}
-            >
-              Sign In
-            </button>
-            <button
-              className={`tab-button flex-1 py-4 text-xl font-semibold relative transition-colors duration-300 ${tab === 'register' ? 'active text-blue-600' : 'text-gray-500 hover:text-blue-500'}`}
-              onClick={() => setTab('register')}
-            >
-              Create Account
-            </button>
-          </div>
-
-          <div className="form-wrapper relative w-full h-[400px]">
-
-            {/* Giriş Formu */}
-            <form
-              id="login-form"
-              className={`absolute top-0 left-0 w-full flex flex-col gap-5 transition-all duration-700 ${tab === 'login' ? 'opacity-100 translate-x-0 z-10' : 'opacity-0 -translate-x-full z-0'}`}
-            >
-              <h2 className="text-3xl font-bold mb-4 text-gray-800">Welcome Back</h2>
-
-              <div>
-                <label htmlFor="login-email" className="form-label">
-                  Email Address
-                </label>
-                <input 
-                  id="login-email" 
-                  type="email" 
-                  placeholder="you@company.com" 
-                  required 
-                  className="form-input text-gray-900" 
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="login-password" className="form-label">
-                  Password
-                </label>
-                <div className="relative">
-                  <input 
-                    id="login-password" 
-                    type={showLoginPassword ? 'text' : 'password'} 
-                    placeholder=""
-                    required 
-                    className="form-input pr-10 text-gray-900" 
-                  />
-                  <button 
-                    type="button" 
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 cursor-pointer"
-                    onClick={() => setShowLoginPassword(!showLoginPassword)}
-                  >
-                    {showLoginPassword ? <EyeOffIcon /> : <EyeIcon />}
-                  </button>
-                </div>
-              </div>
-              
-              <div className="options flex justify-between items-center text-sm">
-                <label className="flex items-center cursor-pointer text-gray-600">
-                  <input type="checkbox" className="mr-2 accent-blue-600" /> Remember me
-                </label>
-                <a href="#" className="text-blue-600 hover:underline text-sm">Forgot password?</a>
-              </div>
-              
-              <button type="submit" className="submit-btn bg-blue-600 hover:bg-blue-700 text-white">
-                Sign In
-              </button>
-
-              <div className="divider flex items-center justify-center my-2">
-                <hr className="flex-grow border-gray-300" />
-                <span className="mx-4 text-gray-500 text-sm">OR</span>
-                <hr className="flex-grow border-gray-300" />
-              </div>
-
-              <button type="button" className="google-btn">
-                <GoogleIcon />
-                Sign In with Google
-              </button>
-
-              <p className="text-center text-gray-600 text-sm mt-4">
-                Don't have an account? <span onClick={() => setTab('register')} className="text-blue-600 hover:underline cursor-pointer">Create one</span>
-              </p>
-            </form>
-
-            {/* Kayıt Formu */}
-            <form
-              id="register-form"
-              className={`absolute top-0 left-0 w-full flex flex-col gap-5 transition-all duration-700 ${tab === 'register' ? 'opacity-100 translate-x-0 z-10' : 'opacity-0 translate-x-full z-0'}`}
-            >
-              <h2 className="text-3xl font-bold mb-4 text-gray-800">Create Your Account</h2>
-
-              <div>
-                <label htmlFor="register-fullname" className="form-label">
-                  Full Name
-                </label>
-                <input 
-                  id="register-fullname" 
-                  type="text" 
-                  placeholder="Your Name" 
-                  required 
-                  className="form-input text-gray-900" 
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="register-email" className="form-label">
-                  Email Address
-                </label>
-                <input 
-                  id="register-email" 
-                  type="email" 
-                  placeholder="you@company.com" 
-                  required 
-                  className="form-input text-gray-900" 
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="register-password" className="form-label">
-                  Create Password
-                </label>
-                <div className="relative">
-                  <input 
-                    id="register-password" 
-                    type={showRegisterPassword ? 'text' : 'password'}
-                    placeholder=""
-                    required 
-                    className="form-input pr-10 text-gray-900"
-                  />
-                  <button 
-                    type="button" 
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 cursor-pointer"
-                    onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                  >
-                    {showRegisterPassword ? <EyeOffIcon /> : <EyeIcon />}
-                  </button>
-                </div>
-              </div>
-              
-              <button type="submit" className="submit-btn bg-blue-600 hover:bg-blue-700 text-white">
-                Create Account
-              </button>
-
-              <div className="divider flex items-center justify-center my-2">
-                <hr className="flex-grow border-gray-300" />
-                <span className="mx-4 text-gray-500 text-sm">OR</span>
-                <hr className="flex-grow border-gray-300" />
-              </div>
-
-              <button type="button" className="google-btn">
-                <GoogleIcon />
-                Sign Up with Google
-              </button>
-              
-              <p className="text-center text-gray-600 text-sm mt-4">
-                Already have an account? <span onClick={() => setTab('login')} className="text-blue-600 hover:underline cursor-pointer">Sign In</span>
-              </p>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export default AuthPage;
