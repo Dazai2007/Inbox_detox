@@ -5,10 +5,21 @@ from jose import jwt, JWTError
 from app.core.config import settings
 
 
-def user_rate_limit_key(request: Request) -> str:
-    """Key function for rate limiting based on authenticated user (email in JWT).
-    Falls back to client IP if no/invalid token.
+def custom_key_func(request: Request) -> str | None:
     """
+    Hız sınırlaması için özel anahtar fonksiyonu.
+    
+    1. OPTIONS (preflight) isteklerini hız sınırlamasından MUAF TUTAR.
+    2. Anahtar olarak kimliği doğrulanmış kullanıcıyı (JWT) kullanmayı dener.
+    3. Token yoksa veya geçersizse IP adresine geri döner.
+    """
+    
+    # 1. OPTIONS (preflight) isteklerini es geç
+    # Bu, 'preflight 400' CORS hatasını kalıcı olarak çözer.
+    if request.method == "OPTIONS":
+        return None
+
+    # 2. JWT'den kullanıcıyı almayı dene (eski user_rate_limit_key fonksiyonu)
     auth = request.headers.get("authorization") or request.headers.get("Authorization")
     if auth and auth.lower().startswith("bearer "):
         try:
@@ -18,14 +29,17 @@ def user_rate_limit_key(request: Request) -> str:
             if sub:
                 return f"user:{sub.lower()}"
         except JWTError:
+            # Token geçersizse, IP'ye geri dön (aşağıdaki kod)
             pass
+    
+    # 3. IP adresine geri dön
     return get_remote_address(request)
 
 
-# Global limiter with default IP-based limits; endpoints can override key_func
-# Enable headers so clients receive X-RateLimit-* and Retry-After
+# Global limiter (Hız Sınırlayıcı)
+# Artık OPTIONS isteklerini görmezden gelen 'custom_key_func' kullanıyor.
 limiter = Limiter(
-    key_func=get_remote_address,
+    key_func=custom_key_func,
     default_limits=[f"{settings.rate_limit_per_minute}/minute"],
     headers_enabled=True,
 )
