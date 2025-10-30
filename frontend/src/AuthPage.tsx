@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
+// YÖNLENDİRME DÜZELTMESİ: 'useNavigate' tekrar aktif edildi
+import { useNavigate } from "react-router-dom";
 import axios from 'axios';
-// import { useNavigate } from "react-router-dom"; 
 
 // --- İkon Komponentleri ---
 const CheckIcon: React.FC = () => (
@@ -39,7 +40,7 @@ const EyeOffIcon: React.FC = () => (
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
-      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 1.274-4.057 5.064-7 9.542-7 1.865 0 3.61 .588 5.029 1.566l-5.029 5.029zm-2.828-2.828l5.656 5.656M9.879 9.879l-5.657 5.657"
+      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 1.274 4.057 5.064 7 9.542 7 1.865 0 3.61 .588 5.029 1.566l-5.029 5.029zm-2.828-2.828l5.656 5.656M9.879 9.879l-5.657 5.657"
     />
   </svg>
 );
@@ -58,7 +59,6 @@ const GoogleIcon: React.FC = () => (
     <path fill="none" d="M0 0h48v48H0z" />
   </svg>
 );
-
 // --- Ana Sayfa Komponenti ---
 const AuthPage: React.FC = () => {
   const [tab, setTab] = useState<'login' | 'register'>('login');
@@ -75,12 +75,11 @@ const AuthPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showError, setShowError] = useState(false);
 
-  // const navigate = useNavigate();
+  // YÖNLENDİRME DÜZELTMESİ: 'navigate' fonksiyonu tekrar aktif edildi
+  const navigate = useNavigate();
 
-  // ====================================================================
-  // DÜZELTME 1: API URL'i yerel sunucuya (main.py) yönlendirildi.
-  // ====================================================================
-  const API_BASE_URL = "http://127.0.0.1:8000"; // "https://api.nexivo.it.com" yerine
+  // API Base URL (Local test için)
+  const API_BASE_URL = "http://127.0.0.1:8000";
 
   useEffect(() => {
     let timerId: ReturnType<typeof setTimeout> | undefined;
@@ -90,12 +89,12 @@ const AuthPage: React.FC = () => {
         setShowError(false);
       }, 5000);
     } else {
-      setShowError(false);
+        setShowError(false);
     }
     return () => {
-      if (timerId) {
-        clearTimeout(timerId);
-      }
+        if (timerId) {
+            clearTimeout(timerId);
+        }
     };
   }, [error]);
 
@@ -105,42 +104,35 @@ const AuthPage: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    // Login (Giriş) isteği `username` ve `password` bekler (form-data olarak)
-    // Bu, FastAPI'nin OAuth2PasswordRequestForm'u için standarttır.
     const formData = new FormData();
-    formData.append('username', loginEmail); // Backend 'username' bekler, 'email' değil.
+    formData.append('username', loginEmail);
     formData.append('password', loginPassword);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/auth/login`, formData, {
-         headers: {
-           'Content-Type': 'multipart/form-data'
-         }
-      });
+      const response = await axios.post(`${API_BASE_URL}/api/auth/login`, formData);
 
       console.log('Giriş başarılı:', response.data);
       localStorage.setItem('accessToken', response.data.access_token);
       localStorage.setItem('refreshToken', response.data.refresh_token);
 
-      alert('Giriş Başarılı!');
-      // navigate('/dashboard'); // Başarılı giriş sonrası yönlendirme
+      // YÖNLENDİRME DÜZELTMESİ: 'navigate' aktif edildi, 'alert' kaldırıldı
+      // alert('Giriş Başarılı!');
+      navigate('/dashboard'); // <-- Aktif edildi
 
     } catch (err) {
       console.error('Giriş hatası:', err);
       let errorMessage = 'Bağlantı hatası veya bilinmeyen bir hata oluştu.';
       if (axios.isAxiosError(err) && err.response) {
-        if (err.response.status === 404) {
-          errorMessage = 'API adresi bulunamadı. Lütfen adresi kontrol edin.';
-        } else if (err.response.data && err.response.data.detail) {
-            // FastAPI'den gelen JSON hatasını göster
-            if (Array.isArray(err.response.data.detail)) {
-              errorMessage = err.response.data.detail[0].msg;
+          if (err.response.status === 404) {
+            errorMessage = 'API adresi bulunamadı. Lütfen adresi kontrol edin.';
+          } else {
+            // Hata mesajını düzgün göstermek için
+            if (typeof err.response.data.detail === 'string') {
+               errorMessage = err.response.data.detail;
             } else {
-              errorMessage = err.response.data.detail;
+               errorMessage = `Giriş sırasında bir hata oluştu (${err.response.status})`;
             }
-        } else {
-            errorMessage = `Giriş sırasında bir hata oluştu (${err.response.status})`;
-        }
+          }
       } else if (err instanceof Error) {
         errorMessage = err.message;
       }
@@ -151,78 +143,69 @@ const AuthPage: React.FC = () => {
   };
 
   const handleRegisterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
-    setError(null);
+      event.preventDefault();
+      
+      // DÜZELTME 3: 'first_name' ve 'last_name' kontrolü
+      const nameParts = registerName.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || ''; // Geri kalanlar
 
-    // ====================================================================
-    // DÜZELTME 2: 'full_name', 'first_name' ve 'last_name' olarak bölündü.
-    // ====================================================================
+      // Backend 'last_name'i zorunlu tutuyor olabilir, bu yüzden kontrol edelim
+      if (!lastName) {
+          setError("Please enter both your first and last name in the 'Full Name' field.");
+          return; // Backend'e istek göndermeyi durdur
+      }
 
-    // 'registerName' state'ini (örn: "Dazai Osamu") alıp boşluğa göre bölelim
-    const nameParts = registerName.trim().split(' ');
-    const firstName = nameParts[0] || ''; // İlk kelime (örn: "Dazai")
-    const lastName = nameParts.slice(1).join(' ') || ''; // Geri kalanlar (örn: "Osamu")
-
-    // DÜZELTME 3: Backend 'last_name' alanını zorunlu tutuyor.
-    // Eğer 'lastName' boşsa (kullanıcı sadece "Dazai" girdiyse) 422 hatası alırız.
-    // İsteği göndermeden önce bunu kontrol edelim.
-    if (!lastName) {
-      setError("Please enter both your first and last name in the 'Full Name' field.");
-      setLoading(false);
-      return; // Fonksiyonu durdur
-    }
-    
-    // Veri artık JSON olarak gönderiliyor, backend'in beklediği gibi.
-    const payload = {
-      email: registerEmail,
-      password: registerPassword,
-      first_name: firstName,
-      last_name: lastName,
-      // timezone: "Europe/Istanbul" // Gerekirse ekle
-    };
-
-    try {
-      // İstek artık doğru formatta ('first_name' ve 'last_name' ile) gönderiliyor.
-      const response = await axios.post(`${API_BASE_URL}/api/auth/register`, payload);
-
-      console.log('Kayıt başarılı:', response.data);
-      alert('Kayıt Başarılı! Lütfen giriş yapın.');
-      setTab('login');
+      setLoading(true);
       setError(null);
 
-    } catch (err) {
-      console.error('Kayıt hatası:', err);
-      let errorMessage = 'Bağlantı hatası veya bilinmeyen bir hata oluştu.';
-      if (axios.isAxiosError(err) && err.response) {
-        if (err.response.status === 404) {
-          errorMessage = 'API adresi bulunamadı. Lütfen adresi kontrol edin.';
-        } else if (err.response.data && err.response.data.detail) {
-            // FastAPI'den gelen JSON hatasını göster (422 veya diğerleri)
-            // Hata bir liste ise (Pydantic Validation Error)
-            if (Array.isArray(err.response.data.detail)) {
-              // Sadece ilk hatanın mesajını göster
-              errorMessage = err.response.data.detail[0].msg;
+      try {
+        const response = await axios.post(`${API_BASE_URL}/api/auth/register`, {
+            email: registerEmail,
+            password: registerPassword,
+            first_name: firstName, // 'full_name' yerine 'first_name'
+            last_name: lastName    // ve 'last_name'
+        });
+
+        console.log('Kayıt başarılı:', response.data);
+        
+        // YÖNLENDİRME DÜZELTMESİ: Gereksiz 'alert' kaldırıldı
+        // alert('Kayıt Başarılı! Lütfen giriş yapın.');
+        
+        // Kullanıcıyı 'login' sekmesine yönlendir
+        setTab('login');
+        setError(null);
+
+      } catch (err) {
+        console.error('Kayıt hatası:', err);
+        let errorMessage = 'Bağlantı hatası veya bilinmeyen bir hata oluştu.';
+        if (axios.isAxiosError(err) && err.response) {
+            if (err.response.status === 404) {
+                errorMessage = 'API adresi bulunamadı. Lütfen adresi kontrol edin.';
             } else {
-              // Normal bir hata mesajı ise (örn: "Email already registered")
-              errorMessage = err.response.data.detail;
+                 // Hata mesajını düzgün göstermek için
+                if (typeof err.response.data.detail === 'string') {
+                   errorMessage = err.response.data.detail;
+                } else if (Array.isArray(err.response.data.detail)) {
+                   // 422 Hatasını göster
+                   errorMessage = err.response.data.detail[0].msg || `Kayıt hatası (${err.response.status})`;
+                } else {
+                   errorMessage = `Kayıt sırasında bir hata oluştu (${err.response.status})`;
+                }
             }
-        } else {
-            errorMessage = `Kayıt sırasında bir hata oluştu (${err.response.status})`;
+        } else if (err instanceof Error) {
+            errorMessage = err.message;
         }
-      } else if (err instanceof Error) {
-        errorMessage = err.message;
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
       }
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
   };
 
 
   return (
     <div className="relative flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-100 to-white font-poppins overflow-hidden">
-
+      
       {/* Toast Bildirimi */}
       <div
         className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 p-4 w-auto max-w-sm bg-red-500 text-white rounded-md shadow-lg transition-all duration-500 ease-in-out ${showError ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'}`}
@@ -232,10 +215,10 @@ const AuthPage: React.FC = () => {
 
       {/* Ana Kutu */}
       <div className="container flex w-[900px] max-w-[95%] min-h-[600px] bg-white rounded-2xl shadow-2xl overflow-hidden">
-
+        
         {/* Sol Panel */}
         <div className="info-panel w-[45%] bg-gradient-to-b from-blue-600 to-blue-800 text-white p-16 flex flex-col justify-center">
-          <h1 className="text-5xl font-bold mb-5 animate-slideInFromLeft">Hello Nexivo</h1>
+         <h1 className="text-5xl font-bold mb-5 animate-slideInFromLeft">Hello Nexivo</h1>
           <p className="text-lg mb-8 opacity-0 animate-fadeIn animation-delay-500 leading-relaxed">
             Join the email productivity revolution. Manage your inbox smarter, faster, and with less stress.
           </p>
@@ -249,16 +232,16 @@ const AuthPage: React.FC = () => {
 
         {/* Sağ Panel */}
         <div className="form-panel w-[55%] p-12 relative overflow-hidden font-poppins bg-gray-100">
-
+          
           {/* Tabs */}
           <div className="tabs flex mb-8 border-b border-gray-200">
-            <button className={`tab-button flex-1 py-4 text-xl font-semibold relative transition-colors duration-300 ${tab === 'login' ? 'active text-blue-600' : 'text-gray-500 hover:text-blue-500'}`} onClick={() => setTab('login')} >Sign In</button>
-            <button className={`tab-button flex-1 py-4 text-xl font-semibold relative transition-colors duration-300 ${tab === 'register' ? 'active text-blue-600' : 'text-gray-500 hover:text-blue-500'}`} onClick={() => setTab('register')} >Create Account</button>
+              <button className={`tab-button flex-1 py-4 text-xl font-semibold relative transition-colors duration-300 ${tab === 'login' ? 'active text-blue-600' : 'text-gray-500 hover:text-blue-500'}`} onClick={() => setTab('login')} >Sign In</button>
+              <button className={`tab-button flex-1 py-4 text-xl font-semibold relative transition-colors duration-300 ${tab === 'register' ? 'active text-blue-600' : 'text-gray-500 hover:text-blue-500'}`} onClick={() => setTab('register')} >Create Account</button>
           </div>
 
           {/* Form Wrapper */}
           <div className="form-wrapper relative w-full h-auto">
-
+            
             {/* Login Form */}
             <form id="login-form" className={`absolute top-0 left-0 w-full flex flex-col gap-4 transition-all duration-700 ${tab === 'login' ? 'opacity-100 translate-x-0 z-10' : 'opacity-0 -translate-x-full z-0 pointer-events-none'}`} onSubmit={handleLoginSubmit} >
               <h2 className="text-3xl font-bold mb-2 text-gray-800">Welcome Back</h2>
@@ -274,7 +257,7 @@ const AuthPage: React.FC = () => {
             {/* Register Form */}
             <form id="register-form" className={`absolute top-0 left-0 w-full flex flex-col gap-4 transition-all duration-700 ${tab === 'register' ? 'opacity-100 translate-x-0 z-10' : 'opacity-0 -translate-x-full z-0 pointer-events-none'}`} onSubmit={handleRegisterSubmit}>
               <h2 className="text-3xl font-bold mb-2 text-gray-800">Create Your Account</h2>
-              <div><label htmlFor="register-fullname" className="form-label">Full Name (e.g., Dazai Osamu)</label><input id="register-fullname" type="text" placeholder="Your Name" required className="form-input text-gray-900" value={registerName} onChange={(e) => setRegisterName(e.target.value)} disabled={loading} /></div>
+              <div><label htmlFor="register-fullname" className="form-label">Full Name</label><input id="register-fullname" type="text" placeholder="Your Name" required className="form-input text-gray-900" value={registerName} onChange={(e) => setRegisterName(e.target.value)} disabled={loading} /></div>
               <div><label htmlFor="register-email" className="form-label">Email Address</label><input id="register-email" type="email" placeholder="you@company.com" required className="form-input text-gray-900" value={registerEmail} onChange={(e) => setRegisterEmail(e.target.value)} disabled={loading} /></div>
               <div><label htmlFor="register-password" className="form-label">Create Password</label><div className="relative"><input id="register-password" type={showRegisterPassword ? 'text' : 'password'} placeholder="" required className="form-input pr-10 text-gray-900" value={registerPassword} onChange={(e) => setRegisterPassword(e.target.value)} disabled={loading} /><button type="button" className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 cursor-pointer" onClick={() => setShowRegisterPassword(!showRegisterPassword)} disabled={loading}>{showRegisterPassword ? <EyeOffIcon /> : <EyeIcon />}</button></div></div>
               <button type="submit" className="submit-btn bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50" disabled={loading}>{loading ? 'Creating Account...' : 'Create Account'}</button>
