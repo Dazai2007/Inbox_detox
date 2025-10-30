@@ -118,11 +118,11 @@ async def _init_db_if_needed():
         )
 
 # ========================================================================
-# HATA AYIKLAMA: Rate Limiter (SlowAPI) geçici olarak devre dışı bırakıldı.
-# 'preflight 400' hatasının bundan kaynaklanıp kaynaklanmadığını test ediyoruz.
+# Hız Sınırlayıcı (SlowAPI) tekrar AÇILDI.
+# 'preflight 400' hatası dönerse, 'app/core/limits.py' dosyasını düzenleyeceğiz.
 # ========================================================================
 app.state.limiter = limiter
-# app.add_middleware(SlowAPIMiddleware) # <--- TEST İÇİN DEVRE DIŞI
+app.add_middleware(SlowAPIMiddleware) # <--- TEKRAR AKTİF
 
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
@@ -308,7 +308,7 @@ async def diag_cors():
     # ama 'environment' ayarını görmek için hâlâ kullanışlı.
     return {
         "environment": settings.environment,
-        "message": "CORS listesi artık main.py'de manuel olarak ayarlanıyor (v3). SlowAPI devredışı.",
+        "message": "CORS listesi main.py'de manuel olarak ayarlandı (v3). SlowAPI AKTİF.",
         "allow_credentials": True,
         "allow_methods": "*",
         "allow_headers": "*",
