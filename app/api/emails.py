@@ -8,7 +8,8 @@ from sqlalchemy.orm import Session
 
 from app.api.auth import get_current_user
 from app.core.config import settings
-from app.core.limits import limiter, user_rate_limit_key
+# HATA 1 DÜZELTMESİ: Artık var olmayan 'user_rate_limit_key' import'tan kaldırıldı.
+from app.core.limits import limiter
 from app.core.security import sanitize_text
 from app.database.database import get_db
 from app.models.models import (
@@ -23,7 +24,9 @@ from app.schemas.schemas import EmailAnalysis, EmailCreate, EmailResponse
 router = APIRouter(prefix="/emails", tags=["emails"])
 
 # Per-user rate limit on analyze (e.g., 10/min per user); fallback to IP when unauthenticated
-@limiter.limit("10/minute", key_func=user_rate_limit_key)
+# HATA 2 DÜZELTMESİ: 'key_func' kaldırıldı.
+# 'limiter' artık 'app/core/limits.py' içindeki 'custom_key_func'ı otomatik olarak kullanacak.
+@limiter.limit("10/minute")
 @router.post("/analyze", response_model=EmailResponse, summary="Analyze an email", description="Analyze email content with AI and persist the result and analytics.")
 async def analyze_email(
     request: Request,
@@ -110,7 +113,8 @@ async def get_user_emails(
     )
     return EmailsPageResponse(data=items, pagination=meta)
 
-@limiter.limit("30/minute", key_func=user_rate_limit_key)
+# HATA 3 DÜZELTMESİ: 'key_func' buradan da kaldırıldı.
+@limiter.limit("30/minute")
 @router.get(
     "/search",
     response_model=EmailsPageResponse,
@@ -235,7 +239,7 @@ async def delete_email(
     
     if not email:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=status.HTTP_44_NOT_FOUND,
             detail="Email not found"
         )
     
