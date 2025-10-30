@@ -25,35 +25,75 @@ from app.core.cookies import set_refresh_cookie, clear_refresh_cookie
 from app.schemas.api_responses import ApiMessage
 from app.core.captcha import verify_turnstile_token
 
+# Hata ayıklama (logging) için import ekleyelim
+import logging
+logger = logging.getLogger("app") # main.py'deki logger'ı kullanalım
+
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 @router.post("/register", response_model=UserResponse, summary="Register a new user", description="Create a new user account with email and password.")
 async def register(request: Request, user_data: UserCreate, db: Session = Depends(get_db)):
-    # Optional CAPTCHA verification
-    if settings.captcha_enabled_register:
-        token = request.headers.get("X-Captcha-Token")
-        if not token:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Captcha token missing")
-        ok = await verify_turnstile_token(token, request.client.host if request.client else None)
-        if not ok:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Captcha validation failed")
-    # Check if user already exists
-    if AuthService.get_user_by_email(db, user_data.email):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
+    
+    # === HATA AYIKLAMA İÇİN LOGLAMA EKLENDİ ===
+    # Bu, gelecekteki 500 hatalarının terminalde görünmesini GARANTİLER.
+    try:
+        # Optional CAPTCHA verification
+        if settings.captcha_enabled_register:
+            token = request.headers.get("X-Captcha-Token")
+            if not token:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Captcha token missing")
+            ok = await verify_turnstile_token(token, request.client.host if request.client else None)
+            if not ok:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Captcha validation failed")
+        
+        # Check if user already exists
+        if AuthService.get_user_by_email(db, user_data.email):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered"
+            )
+        
+        # === 500 HATASI DÜZELTMESİ ===
+        # Frontend'den gelen 'first_name' ve 'last_name'i birleştirip 'full_name' yapalım.
+        # (AuthService.create_user fonksiyonu 'full_name' bekliyor olabilir)
+        
+        # Boşlukları temizle ve birleştir
+        first_name = user_data.first_name.strip() if user_data.first_name else ""
+        last_name = user_data.last_name.strip() if user_data.last_name else ""
+        
+        # Sadece 'first_name' veya 'last_name' varsa bile birleştir
+        full_name = f"{first_name} {last_name}".strip()
+        
+        # Eğer ikisi de boşsa (AuthPage.tsx bunu engelliyor ama garanti olsun)
+        if not full_name:
+             raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="First name and last name cannot be empty."
+            )
+
+        # Create new user
+        user = AuthService.create_user(
+            db=db,
+            email=user_data.email,
+            password=user_data.password,
+            full_name=full_name, # <-- 'user_data.full_name' yerine düzeltilmiş 'full_name'i kullan
         )
-    
-    # Create new user
-    user = AuthService.create_user(
-        db=db,
-        email=user_data.email,
-        password=user_data.password,
-        full_name=user_data.full_name,
-    )
-    
-    return user
+        
+        return user
+
+    except HTTPException as http_exc:
+        # FastAPI'nin normal hatalarını (400, 422 gibi) tekrar fırlat
+        raise http_exc
+    except Exception as exc:
+        # === 500 HATASI YAKALAMA ===
+        # Diğer TÜM beklenmedik hataları (veritabanı çökmesi vb.)
+        # terminale YAZDIR ve 500 fırlat.
+        logger.exception(f"Unhandled 500 error during /register: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error while creating account: {exc}"
+        )
 
 @router.post("/login", response_model=Token, summary="Login and get tokens", description="Login with email and password to receive an access token and a refresh token (also set as httpOnly cookie).")
 async def login(request: Request, response: Response, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
@@ -74,7 +114,7 @@ async def login(request: Request, response: Response, form_data: OAuth2PasswordR
         )
     # Require verified email to login (can be bypassed in dev)
     if not user.is_verified and not settings.allow_unverified_login:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Email not verified. Please verify your email.")
+        raise HTTPException(status_code=status.HTTP_43_FORBIDDEN, detail="Email not verified. Please verify your email.")
     
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     access_token = AuthService.create_access_token(
