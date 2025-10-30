@@ -6,10 +6,6 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.models.models import User, RefreshToken
 from app.core.security import normalize_email, sanitize_text
-try:
-    from zoneinfo import ZoneInfo  # Python 3.9+
-except Exception:  # pragma: no cover
-    ZoneInfo = None
 from app.schemas.schemas import TokenData
 import uuid
 from app.core.jwt_blacklist import is_blacklisted
@@ -100,25 +96,15 @@ class AuthService:
         return user
     
     @staticmethod
-    def create_user(db: Session, email: str, password: str, full_name: str = None, timezone_str: str | None = None) -> User:
+    def create_user(db: Session, email: str, password: str, full_name: str = None) -> User:
         hashed_password = AuthService.get_password_hash(password)
         email_norm = normalize_email(email)
         full_name_sanitized = sanitize_text(full_name) if full_name else None
-        tz = "UTC"
-        if timezone_str:
-            tz_candidate = sanitize_text(timezone_str).strip()
-            if ZoneInfo is not None:
-                try:
-                    # Validate IANA timezone
-                    ZoneInfo(tz_candidate)
-                    tz = tz_candidate
-                except Exception:
-                    tz = "UTC"
+
         user = User(
             email=email_norm,
             hashed_password=hashed_password,
-            full_name=full_name_sanitized,
-            timezone=tz,
+            full_name=full_name_sanitized
         )
         db.add(user)
         db.commit()

@@ -64,6 +64,28 @@ app = FastAPI(
     },
 )
 
+# ========================================================================
+# NİHAİ CORS ÇÖZÜMÜ v3:
+# 'settings.cors_allowed_origins' ekleyen 'if' bloğu SİLİNDİ.
+# Artık ayar dosyanızdaki ('*') bozuk ayar burayı etkilemez.
+# ========================================================================
+origins_listesi = [
+    "http://localhost:5176",  # Senin frontend adresin
+    "http://127.0.0.1:5176",
+    "http://127.0.0.1:5173",  # Eski adres (dursun)
+]
+
+# ----> 'settings'i ekleyen 'if' bloğu buradan kaldırıldı. <----
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins_listesi, # SADECE BU GÜVENLİ LİSTEYİ KULLAN
+    allow_credentials=True, 
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# ========================================================================
+
 # Create database tables on startup for SQLite dev environments
 def _is_sqlite(url: str) -> bool:
     return url.startswith("sqlite")
@@ -95,9 +117,12 @@ async def _init_db_if_needed():
             "Set CORS_ALLOWED_ORIGINS in your environment (comma-separated)."
         )
 
-# Rate limiting
+# ========================================================================
+# HATA AYIKLAMA: Rate Limiter (SlowAPI) geçici olarak devre dışı bırakıldı.
+# 'preflight 400' hatasının bundan kaynaklanıp kaynaklanmadığını test ediyoruz.
+# ========================================================================
 app.state.limiter = limiter
-app.add_middleware(SlowAPIMiddleware)
+# app.add_middleware(SlowAPIMiddleware) # <--- TEST İÇİN DEVRE DIŞI
 
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
@@ -116,6 +141,8 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
         # If anything goes wrong, still return the envelope without extra headers
         pass
     return response
+# ========================================================================
+
 
 # Global error handler for unhandled exceptions (500)
 @app.exception_handler(Exception)
@@ -146,18 +173,6 @@ async def http_exception_handler(request: Request, exc: FastAPIHTTPException):
         content=ErrorEnvelope(success=False, error=ApiError(code=exc.status_code, message=message), request_id=req_id).model_dump(),
     )
 
-# CORS middleware (API-only): explicit origins
-if settings.environment == "production":
-    origins = settings.cors_allowed_origins
-else:
-    origins = settings.dev_cors_allowed_origins or ["http://127.0.0.1:5173"]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # Add basic security headers
 @app.middleware("http")
@@ -214,7 +229,7 @@ async def log_requests(request: Request, call_next):
 async def root():
     return {"app": settings.app_name, "version": "1.0.0", "message": "API is running"}
 
-# No SPA fallback in API-only mode; default FastAPI 404 applies
+# No SPA fallback in API-only mode; default FastAPI 400 applies
 
 # Health check
 @app.get("/health", summary="Health check", description="Returns service health, DB, OpenAI, and Redis status.", response_model=HealthStatus)
@@ -242,7 +257,7 @@ async def health_check(db: Session = Depends(get_db)):
         try:
             import openai
             openai_client = openai.OpenAI(api_key=settings.openai_api_key)
-            # Use a cheap endpoint to check key validity
+            # Use a cheap.
             openai_client.models.list()
             result["openai"] = "ok"
         except Exception as e:
@@ -289,9 +304,11 @@ async def api_info():
 # Diagnostics: expose current CORS and environment settings (safe)
 @app.get("/diag/cors")
 async def diag_cors():
+    # Bu fonksiyon artık app.add_middleware'deki asıl listeyi yansıtmayabilir
+    # ama 'environment' ayarını görmek için hâlâ kullanışlı.
     return {
         "environment": settings.environment,
-        "allowed_origins": (settings.cors_allowed_origins if settings.environment == "production" else settings.dev_cors_allowed_origins),
+        "message": "CORS listesi artık main.py'de manuel olarak ayarlanıyor (v3). SlowAPI devredışı.",
         "allow_credentials": True,
         "allow_methods": "*",
         "allow_headers": "*",
@@ -305,3 +322,4 @@ if __name__ == "__main__":
         port=8000,
         reload=settings.debug
     )
+

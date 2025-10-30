@@ -51,7 +51,6 @@ async def register(request: Request, user_data: UserCreate, db: Session = Depend
         email=user_data.email,
         password=user_data.password,
         full_name=user_data.full_name,
-        timezone_str=user_data.timezone,
     )
     
     return user
