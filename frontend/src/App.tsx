@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import axios from 'axios';
-// YÖNLENDİRME DÜZELTMESİ: 'react-router-dom' kaldırıldı
+// YÖNLENDİRME DÜZELTMESİ: 'useNavigate' kaldırıldı, state yönetimi kullanılacak
 // import { useNavigate } from "react-router-dom";
+import axios from 'axios';
 
-// YENİ EKLENEN IMPORTLAR (Chart.js)
+// Chart.js kütüphaneleri (HomePage için eklendi)
 import { Pie, Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -15,11 +15,11 @@ import {
   BarElement,
 } from "chart.js";
 
-// YENİ EKLENDİ: Chart.js elementlerini kaydet
+// Chart.js bileşenlerini kaydet
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 
-// --- İkon Komponentleri ---
+// --- İkon Komponentleri (AuthPage için) ---
 const CheckIcon: React.FC = () => (
   <svg className="w-5 h-5 mr-3 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -77,7 +77,7 @@ const GoogleIcon: React.FC = () => (
 );
 
 // --- AuthPage Komponenti ---
-// YÖNLENDİRME DÜZELTMESİ: 'onLoginSuccess' prop'u eklendi
+// 'onLoginSuccess' fonksiyonunu prop olarak alır
 const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) => {
   const [tab, setTab] = useState<'login' | 'register'>('login');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -93,7 +93,7 @@ const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) 
   const [error, setError] = useState<string | null>(null);
   const [showError, setShowError] = useState(false);
 
-  // YÖNLENDİRME DÜZELTMESİ: 'navigate' fonksiyonu kaldırıldı
+  // YÖNLENDİRME DÜZELTMESİ: 'navigate' kaldırıldı, prop kullanılacak
   // const navigate = useNavigate();
 
   // API Base URL (Local test için)
@@ -122,20 +122,27 @@ const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) 
     setLoading(true);
     setError(null);
 
-    // DÜZELTME (GERİ ALINDI): Sunucunuz JSON değil, 'URLSearchParams' bekliyor.
+    // DÜZELTME 2: Sunucunuz (auth.py) 'OAuth2PasswordRequestForm' bekliyor.
+    // Bu nedenle veriyi JSON değil, 'URLSearchParams' (form-urlencoded) olarak göndermeliyiz.
     const urlEncodedData = new URLSearchParams();
     urlEncodedData.append('username', loginEmail);
     urlEncodedData.append('password', loginPassword);
 
     try {
-      // 'loginData' (JSON) yerine 'urlEncodedData' (form verisi) gönderiliyor.
-      const response = await axios.post(`${API_BASE_URL}/api/auth/login`, urlEncodedData);
+      // DÜZELTME 4: Sunucuya formatı açıkça belirtmek için 'Content-Type' başlığı eklendi.
+      const response = await axios.post(
+        `${API_BASE_URL}/api/auth/login`,
+        urlEncodedData,
+        {
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        }
+      );
 
       console.log('Giriş başarılı:', response.data);
       localStorage.setItem('accessToken', response.data.access_token);
       localStorage.setItem('refreshToken', response.data.refresh_token);
 
-      // YÖNLENDİRME DÜZELTMESİ: 'navigate' yerine 'onLoginSuccess' çağrıldı
+      // YÖNLENDİRME DÜZELTMESİ: 'navigate' yerine 'onLoginSuccess' prop'u çağrıldı
       onLoginSuccess();
 
     } catch (err) {
@@ -144,13 +151,14 @@ const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) 
       if (axios.isAxiosError(err) && err.response) {
           if (err.response.status === 404) {
             errorMessage = 'API adresi bulunamadı. Lütfen adresi kontrol edin.';
+          } else if (err.response.status === 0 && !err.response.data) {
+             // 0B (Boş) yanıtı veya CORS hatası genellikle status 0 döner
+             errorMessage = 'Sunucuya ulaşılamıyor veya sunucu boş yanıt döndü. (Backend çalışıyor mu?)';
+          } else if (err.response.data && typeof err.response.data.detail === 'string') {
+            // Backend'den gelen (401, 400 vb.) hata mesajı
+            errorMessage = err.response.data.detail;
           } else {
-            // Hata mesajını düzgün göstermek için
-            if (typeof err.response.data.detail === 'string') {
-                errorMessage = err.response.data.detail;
-            } else {
-                errorMessage = `Giriş sırasında bir hata oluştu (${err.response.status})`;
-            }
+            errorMessage = `Giriş sırasında bir hata oluştu (${err.response.status})`;
           }
       } else if (err instanceof Error) {
         errorMessage = err.message;
@@ -164,31 +172,34 @@ const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) 
   const handleRegisterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       
+      // DÜZELTME 3: 'first_name' ve 'last_name' kontrolü
       const nameParts = registerName.trim().split(' ');
       const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
+      const lastName = nameParts.slice(1).join(' ') || ''; // Geri kalanlar
 
+      // Backend 'last_name'i zorunlu tutuyor olabilir, bu yüzden kontrol edelim
       if (!lastName) {
           setError("Please enter both your first and last name in the 'Full Name' field.");
-          return;
+          return; // Backend'e istek göndermeyi durdur
       }
 
       setLoading(true);
       setError(null);
 
       try {
+        // Kayıt işlemi JSON bekliyor (auth.py'ye göre)
         const response = await axios.post(`${API_BASE_URL}/api/auth/register`, {
             email: registerEmail,
             password: registerPassword,
-            first_name: firstName,
-            last_name: lastName
+            first_name: firstName, // 'full_name' yerine 'first_name'
+            last_name: lastName    // ve 'last_name'
         });
 
         console.log('Kayıt başarılı:', response.data);
         
         // Kullanıcıyı 'login' sekmesine yönlendir
         setTab('login');
-        setError(null);
+        setError(null); // Başarılı kayıttan sonra eski hataları temizle
 
       } catch (err) {
         console.error('Kayıt hatası:', err);
@@ -196,16 +207,16 @@ const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) 
         if (axios.isAxiosError(err) && err.response) {
             if (err.response.status === 404) {
                 errorMessage = 'API adresi bulunamadı. Lütfen adresi kontrol edin.';
-            } else {
-                // Hata mesajını düzgün göstermek için
-                if (typeof err.response.data.detail === 'string') {
-                    errorMessage = err.response.data.detail;
-                } else if (Array.isArray(err.response.data.detail)) {
-                    // 422 Hatasını göster
-                    errorMessage = err.response.data.detail[0].msg || `Kayıt hatası (${err.response.status})`;
-                } else {
-                    errorMessage = `Kayıt sırasında bir hata oluştu (${err.response.status})`;
-                }
+            } else if (err.response.data) {
+              // Hata mesajını düzgün göstermek için
+              if (typeof err.response.data.detail === 'string') {
+                  errorMessage = err.response.data.detail;
+              } else if (Array.isArray(err.response.data.detail)) {
+                  // 422 Hatasını göster
+                  errorMessage = err.response.data.detail[0].msg || `Kayıt hatası (${err.response.status})`;
+              } else {
+                  errorMessage = `Kayıt sırasında bir hata oluştu (${err.response.status})`;
+              }
             }
         } else if (err instanceof Error) {
             errorMessage = err.message;
@@ -216,7 +227,7 @@ const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) 
       }
   };
 
-  // AuthPage'in JSX (return) kısmı... Kodunuzla aynı, değişiklik yok.
+
   return (
     <div className="relative flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-100 to-white font-poppins overflow-hidden">
       
@@ -231,7 +242,7 @@ const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) 
       <div className="container flex w-[900px] max-w-[95%] min-h-[600px] bg-white rounded-2xl shadow-2xl overflow-hidden">
         
         {/* Sol Panel */}
-        <div className="info-panel w-[45%] bg-gradient-to-b from-blue-600 to-blue-800 text-white p-16 flex flex-col justify-center">
+        <div className="info-panel w-[45%] bg-gradient-to-b from-blue-600 to-blue-800 text-white p-16 hidden md:flex flex-col justify-center">
          <h1 className="text-5xl font-bold mb-5 animate-slideInFromLeft">Hello Nexivo</h1>
           <p className="text-lg mb-8 opacity-0 animate-fadeIn animation-delay-500 leading-relaxed">
             Join the email productivity revolution. Manage your inbox smarter, faster, and with less stress.
@@ -245,7 +256,7 @@ const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) 
         </div>
 
         {/* Sağ Panel */}
-        <div className="form-panel w-[55%] p-12 relative overflow-hidden font-poppins bg-gray-100">
+        <div className="form-panel w-full md:w-[55%] p-8 sm:p-12 relative overflow-hidden font-poppins bg-gray-100">
           
           {/* Tabs */}
           <div className="tabs flex mb-8 border-b border-gray-200">
@@ -282,16 +293,52 @@ const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) 
           </div>
         </div>
       </div>
+
+      {/* CSS Stilleri (AuthPage için) */}
+      <style>{`
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+        .form-label {
+          @apply text-sm font-semibold text-gray-600 mb-2 block;
+        }
+        .form-input {
+          @apply w-full px-4 py-3 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow;
+        }
+        .submit-btn {
+          @apply w-full py-3 px-4 rounded-lg font-bold text-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5;
+        }
+        .google-btn {
+          @apply w-full py-3 px-4 rounded-lg font-semibold text-gray-700 bg-white border border-gray-300 shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-center;
+        }
+        .tab-button.active::after {
+          content: '';
+          @apply absolute bottom-0 left-0 w-full h-1 bg-blue-600 transition-all duration-300;
+        }
+        .animation-delay-500 { animation-delay: 500ms; }
+        .animation-delay-800 { animation-delay: 800ms; }
+
+        @keyframes slideInFromLeft {
+          from { transform: translateX(-100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slideInFromLeft {
+          animation: slideInFromLeft 0.7s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.5s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };
 
-
-// --- ANA SAYFA KOMPONENTİ (GÜNCELLENDİ) ---
-// HATA DÜZELTMESİ: Fazlalık olan 'HomePage' tanımı kaldırıldı.
-// Burası sizin sağladığınız dashboard koduyla ve Tailwind CSS ile güncellendi
+// --- HomePage Komponenti (Dashboard) ---
+// 'onLogout' fonksiyonunu prop olarak alır
 const HomePage: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
-  
   // Pie chart data
   const emailData = {
     labels: ["Important", "Spam", "Newsletter", "Promotion"],
@@ -311,162 +358,96 @@ const HomePage: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
       {
         label: "Open Rate (%)",
         data: [65, 59, 80],
-        backgroundColor: "rgba(37, 99, 235, 0.8)", // blue-600
-        borderRadius: 4,
+        backgroundColor: "#2563eb",
       },
       {
         label: "Click Rate (%)",
         data: [28, 48, 40],
-        backgroundColor: "rgba(16, 185, 129, 0.8)", // emerald-500
-        borderRadius: 4,
+        backgroundColor: "#10b981",
       },
     ],
   };
-  
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        labels: {
-          color: '#cbd5e1' // Grafik etiketlerini açık renk yapar (opsiyonel)
-        }
-      }
-    },
-    scales: {
-      y: {
-        ticks: { color: '#cbd5e1' },
-        grid: { color: 'rgba(203, 213, 225, 0.1)' }
-      },
-      x: {
-        ticks: { color: '#cbd5e1' },
-        grid: { color: 'rgba(203, 213, 225, 0.1)' }
-      }
-    }
-  };
-  
-  const pieChartOptions = {
-     responsive: true,
-     maintainAspectRatio: false,
-     plugins: {
-      legend: {
-        position: 'bottom' as const, // Etiketleri alta alır
-        labels: {
-          color: '#334155' // Etiket rengi (açık zemin için)
-        }
-      }
-    }
-  };
-  
-  const barChartOptions = {
-     responsive: true,
-     maintainAspectRatio: false,
-     plugins: {
-      legend: {
-        position: 'bottom' as const,
-        labels: {
-          color: '#334155'
-        }
-      }
-    },
-    scales: {
-      y: {
-        ticks: { color: '#334155' },
-        grid: { color: 'rgba(51, 65, 85, 0.1)' }
-      },
-      x: {
-        ticks: { color: '#334155' },
-        grid: { color: 'rgba(51, 65, 85, 0.1)' }
-      }
-    }
-  };
-
 
   return (
-    // Ana layout: Sidebar + Ana içerik
-    <div className="flex h-screen w-full bg-gray-100 font-poppins">
-      
+    // Tailwind sınıfları kullanılarak yeniden düzenlenen Dashboard
+     <div className="flex h-screen w-full bg-gray-100 font-poppins">
       {/* Sidebar */}
-      <aside className="w-64 bg-gray-900 text-gray-300 flex flex-col p-4 shadow-lg">
-        <h1 className="text-3xl font-bold text-white mb-8 text-center">Nexivo</h1>
-        <nav className="flex-1">
-          <ul className="space-y-2">
-            <li className="flex items-center p-3 bg-gray-700 rounded-lg text-white font-semibold cursor-pointer">
-              <span className="mr-3 text-xl">📊</span> Dashboard
-            </li>
-            <li className="flex items-center p-3 rounded-lg hover:bg-gray-800 transition-colors cursor-pointer">
-              <span className="mr-3 text-xl">📧</span> Emails
-            </li>
-            <li className="flex items-center p-3 rounded-lg hover:bg-gray-800 transition-colors cursor-pointer">
-              <span className="mr-3 text-xl">📈</span> Analytics
-            </li>
-            <li className="flex items-center p-3 rounded-lg hover:bg-gray-800 transition-colors cursor-pointer">
-              <span className="mr-3 text-xl">⚙️</span> Settings
-            </li>
-          </ul>
+      <aside className="w-64 bg-white shadow-md flex flex-col flex-shrink-0">
+        <div className="p-6 text-2xl font-bold text-blue-600 border-b">Nexivo</div>
+        <nav className="flex-1 p-4 space-y-2">
+          <a href="#" className="flex items-center p-3 rounded-lg bg-blue-100 text-blue-700 font-semibold">
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>
+            Dashboard
+          </a>
+          <a href="#" className="flex items-center p-3 rounded-lg text-gray-600 hover:bg-gray-100">
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+            Emails
+          </a>
+          <a href="#" className="flex items-center p-3 rounded-lg text-gray-600 hover:bg-gray-100">
+             <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>
+            Analytics
+          </a>
+          <a href="#" className="flex items-center p-3 rounded-lg text-gray-600 hover:bg-gray-100">
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            Settings
+          </a>
         </nav>
-        {/* Çıkış Butonu Sidebar'ın altında */}
-        <div>
-          <button
+        {/* Logout Button */}
+        <div className="p-4 mt-auto border-t">
+           <button
             onClick={onLogout}
-            className="w-full flex items-center justify-center p-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors duration-200"
+            className="flex items-center justify-center w-full p-3 rounded-lg text-red-600 hover:bg-red-100 font-semibold transition-colors"
           >
-            <span className="mr-2 text-xl">🚪</span> Çıkış Yap
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            Çıkış Yap
           </button>
         </div>
       </aside>
 
-      {/* Ana İçerik Alanı (Navbar + Content) */}
+      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        
         {/* Navbar */}
-        <header className="bg-white shadow-md p-4 flex justify-between items-center z-10">
+        <header className="bg-white shadow-sm p-4 flex justify-between items-center z-10">
           <h2 className="text-2xl font-semibold text-gray-800">Welcome back, Saleh 👋</h2>
-          <div className="flex items-center space-x-3">
-             <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl ring-2 ring-offset-2 ring-blue-400">
-               S
-             </div>
-             <span className="text-gray-700 font-medium hidden sm:block">Saleh</span>
+          <div className="flex items-center space-x-4">
+            <span className="font-semibold text-gray-700 hidden sm:block">👤 Saleh</span>
+            {/* Bildirim ikonu eklenebilir */}
           </div>
         </header>
 
-        {/* Content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6 md:p-8">
-          
+        {/* Content Area */}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
           {/* Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="card bg-gradient-to-r from-blue-500 to-blue-700 text-white p-6 rounded-xl shadow-lg transition-transform hover:scale-105">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="p-6 rounded-lg shadow-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white">
               <div className="text-4xl font-bold">120</div>
-              <div className="text-lg opacity-90">📧 Total Emails</div>
+              <div className="text-lg">📧 Total Emails</div>
             </div>
-            <div className="card bg-gradient-to-r from-green-500 to-green-700 text-white p-6 rounded-xl shadow-lg transition-transform hover:scale-105">
+             <div className="p-6 rounded-lg shadow-lg bg-gradient-to-r from-green-500 to-green-600 text-white">
               <div className="text-4xl font-bold">3</div>
-              <div className="text-lg opacity-90">📈 Active Campaigns</div>
+              <div className="text-lg">📈 Active Campaigns</div>
             </div>
-            <div className="card bg-gradient-to-r from-indigo-500 to-indigo-700 text-white p-6 rounded-xl shadow-lg transition-transform hover:scale-105">
+             <div className="p-6 rounded-lg shadow-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-white">
               <div className="text-4xl font-bold">Yes</div>
-              <div className="text-lg opacity-90">✅ Verified</div>
+              <div className="text-lg">✅ Verified</div>
             </div>
           </div>
 
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            {/* Pie Chart (Daha küçük) */}
-            <div className="chart lg:col-span-2 bg-white p-6 rounded-xl shadow-lg">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">Email Categories</h3>
-              <div className="relative h-64 md:h-80 lg:h-96">
-                <Pie data={emailData} options={pieChartOptions} />
+            <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-lg">
+              <h3 className="text-xl font-semibold mb-4">Email Categories</h3>
+              <div className="h-64 md:h-80 flex justify-center items-center">
+                <Pie data={emailData} options={{ maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }} />
               </div>
             </div>
-            {/* Bar Chart (Daha büyük) */}
-            <div className="chart lg:col-span-3 bg-white p-6 rounded-xl shadow-lg">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">Campaign Performance</h3>
-              <div className="relative h-64 md:h-80 lg:h-96">
-                <Bar data={campaignData} options={barChartOptions} />
+            <div className="lg:col-span-3 bg-white p-6 rounded-lg shadow-lg">
+              <h3 className="text-xl font-semibold mb-4">Campaign Performance</h3>
+               <div className="h-64 md:h-80 flex justify-center items-center">
+                <Bar data={campaignData} options={{ maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }} />
               </div>
             </div>
           </div>
-
         </main>
       </div>
     </div>
@@ -474,48 +455,36 @@ const HomePage: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 };
 
 
-// --- ANA APP BİLEŞENİ (YÖNETİCİ) ---
-// Hangi sayfanın gösterileceğine karar verir.
+// --- Ana APP BİLEŞENİ (Yönetici) ---
 export default function App() {
-  
-  // 'isLoggedIn' state'i, kullanıcının giriş yapıp yapmadığını tutar.
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // AuthPage tarafından çağrılacak fonksiyon
+  // Sayfa yüklendiğinde token'ı kontrol et
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      // TODO: Burada token'ı doğrulamak için bir API isteği atılabilir
+      // Şimdilik token varsa giriş yapmış varsayıyoruz
+      setIsLoggedIn(true);
+    }
+  }, []);
+
   const handleLogin = () => {
     setIsLoggedIn(true);
   };
 
-  // HomePage tarafından çağrılacak fonksiyon
   const handleLogout = () => {
-    // Çıkış yaparken token'ları temizle
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     setIsLoggedIn(false);
   };
 
-  // Sayfa ilk yüklendiğinde token'ı kontrol et
-  useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      // Burada token'ın geçerliliğini API'ye sormak daha güvenli olur,
-      // ama şimdilik token varsa giriş yapmış sayıyoruz.
-      setIsLoggedIn(true);
-    }
-  }, []); // [] boş dependency array, bu etkinin sadece ilk render'da çalışmasını sağlar
-
-  return (
-    // 'isLoggedIn' durumuna göre doğru bileşeni render et
-    <>
-      {isLoggedIn ? (
-        // Eğer giriş yapıldıysa: Ana Sayfayı göster
-        <HomePage onLogout={handleLogout} />
-      ) : (
-        // Eğer giriş yapılmadıysa: Giriş Sayfasını göster
-        <AuthPage onLoginSuccess={handleLogin} />
-      )}
-    </>
-    // NOT: AuthPage'iniz zaten kendi 'min-h-screen' arka planını sağladığı için
-    // App bileşenini ekstra bir div ile sarmalamaya gerek kalmadı.
-  );
+  // Giriş durumuna göre doğru sayfayı render et
+  // App bileşenini sarmalayan fragment'ı kaldırıp tek bir root element döndürüyoruz
+  if (isLoggedIn) {
+    return <HomePage onLogout={handleLogout} />;
+  } else {
+    return <AuthPage onLoginSuccess={handleLogin} />;
+  }
 }
+
