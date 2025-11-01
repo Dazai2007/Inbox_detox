@@ -93,9 +93,6 @@ const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) 
   const [error, setError] = useState<string | null>(null);
   const [showError, setShowError] = useState(false);
 
-  // YÖNLENDİRME DÜZELTMESİ: 'navigate' kaldırıldı, prop kullanılacak
-  // const navigate = useNavigate();
-
   // API Base URL (Local test için)
   const API_BASE_URL = "http://127.0.0.1:8000";
 
@@ -122,14 +119,14 @@ const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) 
     setLoading(true);
     setError(null);
 
-    // DÜZELTME 2: Sunucunuz (auth.py) 'OAuth2PasswordRequestForm' bekliyor.
-    // Bu nedenle veriyi JSON değil, 'URLSearchParams' (form-urlencoded) olarak göndermeliyiz.
+    // Sunucunuz (auth.py) 'OAuth2PasswordRequestForm' bekliyor.
+    // Bu nedenle veriyi 'URLSearchParams' (form-urlencoded) olarak göndermeliyiz.
     const urlEncodedData = new URLSearchParams();
     urlEncodedData.append('username', loginEmail);
     urlEncodedData.append('password', loginPassword);
 
     try {
-      // DÜZELTME 4: Sunucuya formatı açıkça belirtmek için 'Content-Type' başlığı eklendi.
+      // Sunucuya formatı açıkça belirtmek için 'Content-Type' başlığı eklendi.
       const response = await axios.post(
         `${API_BASE_URL}/api/auth/login`,
         urlEncodedData,
@@ -142,8 +139,11 @@ const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) 
       localStorage.setItem('accessToken', response.data.access_token);
       localStorage.setItem('refreshToken', response.data.refresh_token);
 
-      // YÖNLENDİRME DÜZELTMESİ: 'navigate' yerine 'onLoginSuccess' prop'u çağrıldı
+      // --- DÜZELTME ---
+      // 'alert()' KULLANILMIYOR.
+      // Sayfa değişimini tetiklemek için 'onLoginSuccess' prop'u çağrılıyor
       onLoginSuccess();
+      // --- DÜZELTME SONU ---
 
     } catch (err) {
       console.error('Giriş hatası:', err);
@@ -152,10 +152,8 @@ const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) 
           if (err.response.status === 404) {
             errorMessage = 'API adresi bulunamadı. Lütfen adresi kontrol edin.';
           } else if (err.response.status === 0 && !err.response.data) {
-             // 0B (Boş) yanıtı veya CORS hatası genellikle status 0 döner
              errorMessage = 'Sunucuya ulaşılamıyor veya sunucu boş yanıt döndü. (Backend çalışıyor mu?)';
           } else if (err.response.data && typeof err.response.data.detail === 'string') {
-            // Backend'den gelen (401, 400 vb.) hata mesajı
             errorMessage = err.response.data.detail;
           } else {
             errorMessage = `Giriş sırasında bir hata oluştu (${err.response.status})`;
@@ -165,6 +163,9 @@ const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) 
       }
       setError(errorMessage);
     } finally {
+      // Not: 'onLoginSuccess' state'i değiştireceği için
+      // 'setLoading(false)' teknik olarak 'catch' bloğunda daha mantıklı olabilir
+      // ama 'finally' bloğunda kalması da sorun yaratmaz.
       setLoading(false);
     }
   };
@@ -172,15 +173,13 @@ const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) 
   const handleRegisterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       
-      // DÜZELTME 3: 'first_name' ve 'last_name' kontrolü
       const nameParts = registerName.trim().split(' ');
       const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || ''; // Geri kalanlar
+      const lastName = nameParts.slice(1).join(' ') || ''; 
 
-      // Backend 'last_name'i zorunlu tutuyor olabilir, bu yüzden kontrol edelim
       if (!lastName) {
           setError("Please enter both your first and last name in the 'Full Name' field.");
-          return; // Backend'e istek göndermeyi durdur
+          return; 
       }
 
       setLoading(true);
@@ -191,8 +190,8 @@ const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) 
         const response = await axios.post(`${API_BASE_URL}/api/auth/register`, {
             email: registerEmail,
             password: registerPassword,
-            first_name: firstName, // 'full_name' yerine 'first_name'
-            last_name: lastName    // ve 'last_name'
+            first_name: firstName, 
+            last_name: lastName    
         });
 
         console.log('Kayıt başarılı:', response.data);
@@ -208,11 +207,9 @@ const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) 
             if (err.response.status === 404) {
                 errorMessage = 'API adresi bulunamadı. Lütfen adresi kontrol edin.';
             } else if (err.response.data) {
-              // Hata mesajını düzgün göstermek için
               if (typeof err.response.data.detail === 'string') {
                   errorMessage = err.response.data.detail;
               } else if (Array.isArray(err.response.data.detail)) {
-                  // 422 Hatasını göster
                   errorMessage = err.response.data.detail[0].msg || `Kayıt hatası (${err.response.status})`;
               } else {
                   errorMessage = `Kayıt sırasında bir hata oluştu (${err.response.status})`;
@@ -231,7 +228,7 @@ const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) 
   return (
     <div className="relative flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-100 to-white font-poppins overflow-hidden">
       
-      {/* Toast Bildirimi */}
+      {/* Toast Bildirimi (alert yerine) */}
       <div
         className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 p-4 w-auto max-w-sm bg-red-500 text-white rounded-md shadow-lg transition-all duration-500 ease-in-out ${showError ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'}`}
       >
@@ -487,3 +484,4 @@ export default function App() {
     return <AuthPage onLoginSuccess={handleLogin} />;
   }
 }
+
