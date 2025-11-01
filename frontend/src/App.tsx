@@ -162,12 +162,10 @@ const AuthPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) 
         errorMessage = err.message;
       }
       setError(errorMessage);
-    } finally {
-      // Not: 'onLoginSuccess' state'i değiştireceği için
-      // 'setLoading(false)' teknik olarak 'catch' bloğunda daha mantıklı olabilir
-      // ama 'finally' bloğunda kalması da sorun yaratmaz.
-      setLoading(false);
-    }
+      setLoading(false); // <-- HATA DURUMUNDA YÜKLEMEYİ DURDUR
+    } 
+    // FINALLY bloğu kaldırıldı. Başarılı girişte 'setLoading(false)' çağrılmayacak
+    // çünkü bileşen zaten kaldırılıyor.
   };
 
   const handleRegisterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -484,4 +482,5 @@ export default function App() {
     return <AuthPage onLoginSuccess={handleLogin} />;
   }
 }
+
 
