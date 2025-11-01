@@ -10,16 +10,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from fastapi.responses import JSONResponse
 import uuid
-"""
-Legacy entrypoint kept for backward-compatibility.
-Delegates to the real FastAPI app in app.main without exposing secrets.
-"""
 
-from app.main import app  # noqa: F401
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000)
 
 
 from app.core.config import settings
@@ -76,21 +67,20 @@ app = FastAPI(
 )
 
 # ========================================================================
-# NİHAİ CORS ÇÖZÜMÜ v3:
-# 'settings.cors_allowed_origins' ekleyen 'if' bloğu SİLİNDİ.
-# Artık ayar dosyanızdaki ('*') bozuk ayar burayı etkilemez.
+# CORS AYARI (GİRİŞ YAPABİLMEK İÇİN GEREKLİ)
 # ========================================================================
+# 'settings' yerine manuel olarak '*' (tümüne izin ver) olarak ayarlandı.
+# Bu, localhost'tan gelen (React) isteklerinin engellenmemesini sağlar.
 origins_listesi = [
-    "http://localhost:5176",  # Senin frontend adresin
-    "http://127.0.0.1:5176",
-    "http://127.0.0.1:5173",  # Eski adres (dursun)
+    "*" # Test için tüm adreslere izin ver
+    # "http://localhost:5176",
+    # "http://127.0.0.1:5176",
+    # "http://127.0.0.1:5173",
 ]
-
-# ----> 'settings'i ekleyen 'if' bloğu buradan kaldırıldı. <----
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins_listesi, # SADECE BU GÜVENLİ LİSTEYİ KULLAN
+    allow_origins=origins_listesi, # SADECE BU LİSTEYİ KULLAN
     allow_credentials=True, 
     allow_methods=["*"],
     allow_headers=["*"],
@@ -129,11 +119,10 @@ async def _init_db_if_needed():
         )
 
 # ========================================================================
-# Hız Sınırlayıcı (SlowAPI) tekrar AÇILDI.
-# 'preflight 400' hatası dönerse, 'app/core/limits.py' dosyasını düzenleyeceğiz.
+# Hız Sınırlayıcı (SlowAPI)
 # ========================================================================
 app.state.limiter = limiter
-app.add_middleware(SlowAPIMiddleware) # <--- TEKRAR AKTİF
+app.add_middleware(SlowAPIMiddleware)
 
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
@@ -147,7 +136,7 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     # Inject X-RateLimit-* and Retry-After headers
     try:
         limiter = request.app.state.limiter
-        response = limiter._inject_headers(response, request.state.view_rate_limit)  # type: ignore[attr-defined]
+        response = limiter._inject_headers(response, request.state.view_rate_limit) # type: ignore[attr-defined]
     except Exception:
         # If anything goes wrong, still return the envelope without extra headers
         pass
@@ -325,12 +314,12 @@ async def diag_cors():
         "allow_headers": "*",
     }
 
+# --- BU BLOK DOSYANIN SONUNDA KALMALIDIR ---
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
         "app.main:app",
-        host="127.0.0.1",
+        host="127.0.0.1", # '0.0.0.0' yerine '127.0.0.1' olarak değiştirildi
         port=8000,
         reload=settings.debug
     )
-
