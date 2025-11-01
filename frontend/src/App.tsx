@@ -487,4 +487,3 @@ export default function App() {
     return <AuthPage onLoginSuccess={handleLogin} />;
   }
 }
-
